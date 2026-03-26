@@ -1,0 +1,167 @@
+# ======================================
+# https://github.com/sirpdboy/buildrun
+# Lisence: MIT
+# Author: sirpdboy
+# ======================================
+name: "Build Passwall2 run files"
+description: "Build Passwall2 run file as a reusable composite action"
+author: "sirpdboy"
+branding:
+  icon: 'package'
+  color: 'green'
+
+inputs:
+  OUTPUT_DIR:
+    description: "Output directory for run file"
+    required: false
+    default: "./passwall"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Fetch latest release tag from Passwall2
+      shell: bash
+      run: |
+        latest_tag=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest | jq -r '.tag_name')
+        echo "LATEST_TAG=$latest_tag" >> $GITHUB_ENV
+
+    - name: Clone makeself repository
+      shell: bash
+      run: git clone https://github.com/megastep/makeself.git
+
+    - name: Download latest Passwall2 files
+      shell: bash
+      run: |
+        mkdir -p downloads
+        cd downloads
+
+        # packages x86_64 ipk
+        curl -L -o passwall_packages_ipk_x86_64.zip \
+        https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/passwall_packages_ipk_x86_64.zip
+
+        # packages x86_64 apk
+        curl -L -o passwall_packages_apk_x86_64.zip \
+        https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/passwall_packages_apk_x86_64.zip
+        
+        # packages aarch64 ipk
+        curl -L -o passwall_packages_ipk_aarch64_cortex-a53.zip \
+        https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/passwall_packages_ipk_aarch64_cortex-a53.zip
+        # packages aarch64 apk
+        curl -L -o passwall_packages_apk_aarch64_cortex-a53.zip \
+        https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/passwall_packages_apk_aarch64_cortex-a53.zip
+        
+        # luci app ipk
+        curl -L -O $(
+          curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest \
+          | jq -r '.assets[] | select(.name | test("luci-.*-passwall2.*\\.ipk")) | .browser_download_url' | head -1
+        )
+        # luci app apk
+        curl -L -O $(
+          curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest \
+          | jq -r '.assets[] | select(.name | test("luci-.*-passwall2.*\\.apk")) | .browser_download_url' | head -1
+        )
+        # ipk
+        curl -L -O "$(
+          curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest \
+          | jq -r '.assets[]
+            | select(.name | test("^luci-i18n-passwall2-zh-cn_.*\\.ipk$"))
+            | .browser_download_url'
+        )"
+        # apk
+        curl -L -O "$(
+          curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest \
+          | jq -r '.assets[]
+            | select(.name | test("^luci-i18n-passwall2-zh-cn_.*\\.apk$"))
+            | .browser_download_url'
+        )"
+
+    - name: ipk files for x86_64
+      shell: bash
+      run: |
+        mkdir -p passwall_x86_64_ipk/depends passwall_x86_64_ipk/main
+        unzip downloads/passwall_packages_ipk_x86_64.zip -d passwall_x86_64_ipk/depends
+        rm downloads/passwall_packages_ipk_x86_64.zip
+        cp downloads/luci-*.ipk passwall_x86_64_ipk/main/
+
+    - name: apk files for x86_64
+      shell: bash
+      run: |
+        mkdir -p passwall_x86_64_apk/depends passwall_x86_64_apk/main
+        unzip downloads/passwall_packages_apk_x86_64.zip -d passwall_x86_64_apk/depends
+        rm downloads/passwall_packages_apk_x86_64.zip
+        cp downloads/luci-*.apk passwall_x86_64_apk/main/
+
+    - name: ipk files for aarch64_cortex-a53
+      shell: bash
+      run: |
+        mkdir -p passwall_aarch64_ipk/depends passwall_aarch64_ipk/main
+        unzip downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall_aarch64_ipk/depends
+        rm downloads/passwall_packages_ipk_aarch64_cortex-a53.zip
+        cp downloads/luci-*.ipk passwall_aarch64_ipk/main/
+
+    - name: apk for aarch64_cortex-a53
+      shell: bash
+      run: |
+        mkdir -p passwall_aarch64_apk/depends passwall_aarch64_apk/main
+        unzip downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall_aarch64_apk/depends
+        rm downloads/passwall_packages_apk_aarch64_cortex-a53.zip
+        cp downloads/luci-*.apk passwall_aarch64_apk/main/
+
+    - name: Create install.sh scripts
+      shell: bash
+      run: |
+        # IPK install scripts
+        cat <<'EOF' > passwall_x86_64_ipk/install.sh
+        #!/bin/sh
+        opkg update
+        if [ $? -ne 0 ]; then
+            echo "update failed。"
+            exit 1
+        fi
+        opkg install iptables-mod-tproxy iptables-mod-socket iptables-mod-iprange iptables-mod-conntrack-extra
+        opkg install depends/*.ipk main/*.ipk
+        echo "Passwall2 installed successfully"
+        EOF
+        chmod +x passwall_x86_64_ipk/install.sh
+        cp passwall_x86_64_ipk/install.sh passwall_aarch64_ipk/install.sh
+
+        # APK install scripts
+        cat <<'EOF' > passwall_x86_64_apk/install.sh
+        #!/bin/sh
+        apk update
+        if [ $? -ne 0 ]; then
+            echo "update failed。"
+            exit 1
+        fi
+        apk add iptables-mod-tproxy iptables-mod-socket iptables-mod-iprange iptables-mod-conntrack-extra
+        apk add --force --allow-untrusted depends/*.apk main/*.apk
+        echo "Passwall2 installed successfully (forced mode)"
+        EOF
+        chmod +x passwall_x86_64_apk/install.sh
+        cp passwall_x86_64_apk/install.sh passwall_aarch64_apk/install.sh
+
+    - name: Move passwall2 directories to makeself
+      shell: bash
+      run: |
+        mv passwall_x86_64_ipk makeself/
+        mv passwall_aarch64_ipk makeself/
+        mv passwall_x86_64_apk makeself/
+        mv passwall_aarch64_apk makeself/
+
+    - name: Create self-extracting packages
+      shell: bash
+      run: |
+        cd makeself
+        ./makeself.sh passwall_x86_64_ipk/ passwall2_x86_64_ipk_${{ env.LATEST_TAG }}.run "by sirpdboy github action" ./install.sh
+        ./makeself.sh passwall_aarch64_ipk/ passwall2_aarch64_a53_ipk_${{ env.LATEST_TAG }}.run "by sirpdboy github action" ./install.sh
+        ./makeself.sh passwall_x86_64_apk/ passwall2_x86_64_apk_${{ env.LATEST_TAG }}.run "by sirpdboy github action" ./install.sh
+        ./makeself.sh passwall_aarch64_apk/ passwall2_aarch64_a53_apk_${{ env.LATEST_TAG }}.run "by sirpdboy github action" ./install.sh
+
+    - name: copy file
+      shell: bash
+      run: |
+        mkdir -p ${{ inputs.OUTPUT_DIR }}
+        cp makeself/*.run ${{ inputs.OUTPUT_DIR }}
