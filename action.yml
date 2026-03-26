@@ -23,145 +23,223 @@ runs:
       uses: actions/checkout@v4
 
     - name: Fetch latest release tag from Passwall2
+      id: fetch_latest_tag
       shell: bash
       run: |
         latest_tag=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest | jq -r '.tag_name')
         echo "LATEST_TAG=$latest_tag" >> $GITHUB_ENV
+        mkdir -p ${{ inputs.OUTPUT_DIR }}
+        echo "Latest tag: $latest_tag"
 
     - name: Clone makeself repository
       shell: bash
-      run: git clone https://github.com/megastep/makeself.git
+      run: |
+        if [ ! -d "makeself" ]; then
+          git clone https://github.com/megastep/makeself.git
+        fi
 
     - name: Download latest Passwall2 files
       shell: bash
       run: |
         mkdir -p downloads
         cd downloads
-
-        # packages x86_64 ipk
-        curl -L -o passwall_packages_ipk_x86_64.zip \
-        https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/passwall_packages_ipk_x86_64.zip
-
-        # packages x86_64 apk
-        curl -L -o passwall_packages_apk_x86_64.zip \
-        https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/passwall_packages_apk_x86_64.zip
         
-        # packages aarch64 ipk
-        curl -L -o passwall_packages_ipk_aarch64_cortex-a53.zip \
-        https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/passwall_packages_ipk_aarch64_cortex-a53.zip
-        # packages aarch64 apk
-        curl -L -o passwall_packages_apk_aarch64_cortex-a53.zip \
-        https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/passwall_packages_apk_aarch64_cortex-a53.zip
+        # 定义要下载的固定包列表
+        PACKAGES=(
+          "passwall_packages_ipk_x86_64.zip"
+          "passwall_packages_apk_x86_64.zip"
+          "passwall_packages_ipk_aarch64_cortex-a53.zip"
+          "passwall_packages_apk_aarch64_cortex-a53.zip"
+        )
         
-        # luci app ipk
-        curl -L -O $(
-          curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest \
-          | jq -r '.assets[] | select(.name | test("luci-.*-passwall2.*\\.ipk")) | .browser_download_url' | head -1
-        )
-        # luci app apk
-        curl -L -O $(
-          curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest \
-          | jq -r '.assets[] | select(.name | test("luci-.*-passwall2.*\\.apk")) | .browser_download_url' | head -1
-        )
-        # ipk
-        curl -L -O "$(
-          curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest \
-          | jq -r '.assets[]
-            | select(.name | test("^luci-i18n-passwall2-zh-cn_.*\\.ipk$"))
-            | .browser_download_url'
-        )"
-        # apk
-        curl -L -O "$(
-          curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest \
-          | jq -r '.assets[]
-            | select(.name | test("^luci-i18n-passwall2-zh-cn_.*\\.apk$"))
-            | .browser_download_url'
-        )"
+        # 下载固定的包
+        for pkg in "${PACKAGES[@]}"; do
+          echo "Downloading: $pkg"
+          curl -L -o "$pkg" \
+            "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/$pkg" || echo "Warning: Failed to download $pkg"
+        done
+        
+        # 获取最新release信息
+        RELEASE_INFO=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest)
+        
+        # 下载luci app ipk
+        LUCI_IPK_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.ipk$")) | .browser_download_url' | head -1)
+        if [ -n "$LUCI_IPK_URL" ] && [ "$LUCI_IPK_URL" != "null" ]; then
+          echo "Downloading luci app ipk: $LUCI_IPK_URL"
+          curl -L -O "$LUCI_IPK_URL"
+        else
+          echo "No luci app ipk found"
+        fi
+        
+        # 下载luci app apk
+        LUCI_APK_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.apk$")) | .browser_download_url' | head -1)
+        if [ -n "$LUCI_APK_URL" ] && [ "$LUCI_APK_URL" != "null" ]; then
+          echo "Downloading luci app apk: $LUCI_APK_URL"
+          curl -L -O "$LUCI_APK_URL"
+        else
+          echo "No luci app apk found"
+        fi
+        
+        # 下载luci简体中文语言包ipk
+        LUCI_I18N_IPK_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("^luci-i18n-passwall2-zh-cn_.*\\.ipk$")) | .browser_download_url')
+        if [ -n "$LUCI_I18N_IPK_URL" ] && [ "$LUCI_I18N_IPK_URL" != "null" ]; then
+          echo "Downloading luci i18n ipk: $LUCI_I18N_IPK_URL"
+          curl -L -O "$LUCI_I18N_IPK_URL"
+        else
+          echo "No luci i18n ipk found"
+        fi
+        
+        # 下载luci简体中文语言包apk
+        LUCI_I18N_APK_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("^luci-i18n-passwall2-zh-cn_.*\\.apk$")) | .browser_download_url')
+        if [ -n "$LUCI_I18N_APK_URL" ] && [ "$LUCI_I18N_APK_URL" != "null" ]; then
+          echo "Downloading luci i18n apk: $LUCI_I18N_APK_URL"
+          curl -L -O "$LUCI_I18N_APK_URL"
+        else
+          echo "No luci i18n apk found"
+        fi
+        
+        # 列出下载的文件
+        echo "Downloaded files in downloads directory:"
+        ls -la
 
-    - name: ipk files for x86_64
+    - name: Extract and organize ipk files for x86_64
       shell: bash
       run: |
-        mkdir -p passwall_x86_64_ipk/depends passwall_x86_64_ipk/main
-        unzip downloads/passwall_packages_ipk_x86_64.zip -d passwall_x86_64_ipk/depends
-        rm downloads/passwall_packages_ipk_x86_64.zip
-        cp downloads/luci-*.ipk passwall_x86_64_ipk/main/
+        mkdir -p passwall_x86_64_ipk/depends passwall_x86_64_ipk/luci
+        if [ -f downloads/passwall_packages_ipk_x86_64.zip ]; then
+          unzip -q downloads/passwall_packages_ipk_x86_64.zip -d passwall_x86_64_ipk/depends
+          rm downloads/passwall_packages_ipk_x86_64.zip
+        fi
+        cp downloads/luci-app-passwall2*.ipk passwall_x86_64_ipk/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall_x86_64_ipk/luci/ 2>/dev/null || true
+        echo "x86_64 ipk files organized"
 
-    - name: apk files for x86_64
+    - name: Extract and organize apk files for x86_64
       shell: bash
       run: |
-        mkdir -p passwall_x86_64_apk/depends passwall_x86_64_apk/main
-        unzip downloads/passwall_packages_apk_x86_64.zip -d passwall_x86_64_apk/depends
-        rm downloads/passwall_packages_apk_x86_64.zip
-        cp downloads/luci-*.apk passwall_x86_64_apk/main/
+        mkdir -p passwall_x86_64_apk/depends passwall_x86_64_apk/luci
+        if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
+          unzip -q downloads/passwall_packages_apk_x86_64.zip -d passwall_x86_64_apk/depends
+          rm downloads/passwall_packages_apk_x86_64.zip
+        fi
+        cp downloads/luci-app-passwall2*.apk passwall_x86_64_apk/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall_x86_64_apk/luci/ 2>/dev/null || true
+        echo "x86_64 apk files organized"
 
-    - name: ipk files for aarch64_cortex-a53
+    - name: Extract and organize ipk files for aarch64_cortex-a53
       shell: bash
       run: |
-        mkdir -p passwall_aarch64_ipk/depends passwall_aarch64_ipk/main
-        unzip downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall_aarch64_ipk/depends
-        rm downloads/passwall_packages_ipk_aarch64_cortex-a53.zip
-        cp downloads/luci-*.ipk passwall_aarch64_ipk/main/
+        mkdir -p passwall_aarch64_ipk/depends passwall_aarch64_ipk/luci
+        if [ -f downloads/passwall_packages_ipk_aarch64_cortex-a53.zip ]; then
+          unzip -q downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall_aarch64_ipk/depends
+          rm downloads/passwall_packages_ipk_aarch64_cortex-a53.zip
+        fi
+        cp downloads/luci-app-passwall2*.ipk passwall_aarch64_ipk/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall_aarch64_ipk/luci/ 2>/dev/null || true
+        echo "aarch64 ipk files organized"
 
-    - name: apk for aarch64_cortex-a53
+    - name: Extract and organize apk files for aarch64_cortex-a53
       shell: bash
       run: |
-        mkdir -p passwall_aarch64_apk/depends passwall_aarch64_apk/main
-        unzip downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall_aarch64_apk/depends
-        rm downloads/passwall_packages_apk_aarch64_cortex-a53.zip
-        cp downloads/luci-*.apk passwall_aarch64_apk/main/
+        mkdir -p passwall_aarch64_apk/depends passwall_aarch64_apk/luci
+        if [ -f downloads/passwall_packages_apk_aarch64_cortex-a53.zip ]; then
+          unzip -q downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall_aarch64_apk/depends
+          rm downloads/passwall_packages_apk_aarch64_cortex-a53.zip
+        fi
+        cp downloads/luci-app-passwall2*.apk passwall_aarch64_apk/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall_aarch64_apk/luci/ 2>/dev/null || true
+        echo "aarch64 apk files organized"
 
     - name: Create install.sh scripts
       shell: bash
       run: |
-        # IPK install scripts
+        # IPK 安装脚本（OpenWrt）
         cat <<'EOF' > passwall_x86_64_ipk/install.sh
         #!/bin/sh
+        # OpenWrt opkg 安装脚本
+        echo "Installing Passwall2 for OpenWrt..."
         opkg update
         if [ $? -ne 0 ]; then
-            echo "update failed。"
+            echo "opkg update failed"
             exit 1
         fi
         opkg install iptables-mod-tproxy iptables-mod-socket iptables-mod-iprange iptables-mod-conntrack-extra
-        opkg install depends/*.ipk main/*.ipk
-        echo "Passwall2 installed successfully"
+        opkg install depends/*.ipk
+        opkg install luci/*.ipk
+        echo "Passwall2 installation completed for OpenWrt"
         EOF
         chmod +x passwall_x86_64_ipk/install.sh
         cp passwall_x86_64_ipk/install.sh passwall_aarch64_ipk/install.sh
 
-        # APK install scripts
+        # APK 安装脚本（Alpine Linux）- 强制安装，不校验签名
         cat <<'EOF' > passwall_x86_64_apk/install.sh
         #!/bin/sh
+        # Alpine Linux apk 安装脚本 - 强制安装模式
+        echo "Installing Passwall2 for Alpine Linux..."
         apk update
         if [ $? -ne 0 ]; then
-            echo "update failed。"
+            echo "apk update failed"
             exit 1
         fi
+        
+        # 安装依赖包
         apk add iptables-mod-tproxy iptables-mod-socket iptables-mod-iprange iptables-mod-conntrack-extra
-        apk add --force --allow-untrusted depends/*.apk main/*.apk
-        echo "Passwall2 installed successfully (forced mode)"
+        
+        for pkg in depends/*.apk luci/*.apk; do
+            if [ -f "$pkg" ]; then
+                apk add --force --allow-untrusted "$pkg"
+            fi
+        done
+        
+        echo "Passwall2 installation completed for Alpine Linux (forced mode)"
         EOF
         chmod +x passwall_x86_64_apk/install.sh
         cp passwall_x86_64_apk/install.sh passwall_aarch64_apk/install.sh
+        
+        echo "Install scripts created"
 
     - name: Move passwall2 directories to makeself
       shell: bash
       run: |
+        mkdir -p makeself
         mv passwall_x86_64_ipk makeself/
         mv passwall_aarch64_ipk makeself/
         mv passwall_x86_64_apk makeself/
         mv passwall_aarch64_apk makeself/
+        echo "Directories moved to makeself/"
 
     - name: Create self-extracting packages
       shell: bash
       run: |
         cd makeself
-        ./makeself.sh passwall_x86_64_ipk/ passwall2_x86_64_ipk_${{ env.LATEST_TAG }}.run "by sirpdboy github action" ./install.sh
-        ./makeself.sh passwall_aarch64_ipk/ passwall2_aarch64_a53_ipk_${{ env.LATEST_TAG }}.run "by sirpdboy github action" ./install.sh
-        ./makeself.sh passwall_x86_64_apk/ passwall2_x86_64_apk_${{ env.LATEST_TAG }}.run "by sirpdboy github action" ./install.sh
-        ./makeself.sh passwall_aarch64_apk/ passwall2_aarch64_a53_apk_${{ env.LATEST_TAG }}.run "by sirpdboy github action" ./install.sh
+        
+        # 确保makeself脚本可执行
+        chmod +x makeself.sh
+        
+        # 创建IPK包
+        if [ -d "passwall_x86_64_ipk" ]; then
+          ./makeself.sh passwall_x86_64_ipk passwall2_x86_64_ipk_${{ env.LATEST_TAG }}.run "Passwall2 installer for OpenWrt x86_64" ./install.sh
+        fi
+        
+        if [ -d "passwall_aarch64_ipk" ]; then
+          ./makeself.sh passwall_aarch64_ipk passwall2_aarch64_a53_ipk_${{ env.LATEST_TAG }}.run "Passwall2 installer for OpenWrt aarch64" ./install.sh
+        fi
+        
+        # 创建APK包
+        if [ -d "passwall_x86_64_apk" ]; then
+          ./makeself.sh passwall_x86_64_apk passwall2_x86_64_apk_${{ env.LATEST_TAG }}.run "Passwall2 installer for Alpine Linux x86_64" ./install.sh
+        fi
+        
+        if [ -d "passwall_aarch64_apk" ]; then
+          ./makeself.sh passwall_aarch64_apk passwall2_aarch64_a53_apk_${{ env.LATEST_TAG }}.run "Passwall2 installer for Alpine Linux aarch64" ./install.sh
+        fi
+        
+        echo "Self-extracting packages created:"
+        ls -lh *.run
 
-    - name: copy file
+    - name: Copy files to output directory
       shell: bash
       run: |
-        mkdir -p ${{ inputs.OUTPUT_DIR }}
-        cp makeself/*.run ${{ inputs.OUTPUT_DIR }}
+        cp makeself/*.run ${{ inputs.OUTPUT_DIR }} 2>/dev/null || true
+        echo "Files copied to ${{ inputs.OUTPUT_DIR }}"
+        ls -lh ${{ inputs.OUTPUT_DIR }}
