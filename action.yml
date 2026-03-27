@@ -49,7 +49,8 @@ runs:
     - name: Download latest Nikki files
       shell: bash
       run: |
-        cd downloads 2>/dev/null || mkdir -p downloads && cd downloads
+        rm -rf downloads
+        mkdir -p downloads && cd downloads
         
         RELEASE_INFO=$(curl -s https://api.github.com/repos/nikkinikki-org/OpenWrt-nikki/releases/latest)
         
@@ -89,7 +90,7 @@ runs:
       shell: bash
       run: |
         X86_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_x86_64-openwrt-24.10*" 2>/dev/null | head -1)
-        
+        echo 'dir: '$X86_DIR
         if [ -n "$X86_DIR" ] && [ -d "$X86_DIR" ]; then
           cp "$X86_DIR"/*.ipk nikki-ipk-x86/ 2>/dev/null || true
           for dir in nikki-ipk-x86; do
@@ -109,7 +110,7 @@ runs:
           echo "x86_64 directory not found"
         fi
         X86_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_x86_64-openwrt-25.12*" 2>/dev/null | head -1)
-        
+        echo 'dir: '$X86_DIR
         if [ -n "$X86_DIR" ] && [ -d "$X86_DIR" ]; then
           cp "$X86_DIR"/*.apk nikki-apk-x86/ 2>/dev/null || true
           
@@ -134,7 +135,8 @@ runs:
       shell: bash
       run: |
         AARCH64_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_aarch64_cortex-a53-openwrt-24.10*" 2>/dev/null | head -1)
-        
+
+        echo 'dir: '$AARCH64_DIR
         if [ -n "$AARCH64_DIR" ] && [ -d "$AARCH64_DIR" ]; then
           cp "$AARCH64_DIR"/*.ipk nikki-ipk-a53/ 2>/dev/null || true
           
@@ -155,7 +157,8 @@ runs:
           echo "aarch64 directory not found"
         fi
         AARCH64_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_aarch64_cortex-a53-openwrt-25.12*" 2>/dev/null | head -1)
-        
+
+        echo 'dir: '$AARCH64_DIR
         if [ -n "$AARCH64_DIR" ] && [ -d "$AARCH64_DIR" ]; then
           cp "$AARCH64_DIR"/*.apk nikki-apk-a53/ 2>/dev/null || true
           
