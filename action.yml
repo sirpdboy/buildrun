@@ -1,8 +1,3 @@
-# ======================================
-# https://github.com/sirpdboy/buildrun
-# Lisence: MIT
-# Author: sirpdboy
-# ======================================
 name: "Build SSR Plus run files"
 description: "Build SSR Plus (shadowsocksr-libev) run file with IPK (OpenWrt) and APK (Alpine) support"
 author: "sirpdboy"
@@ -22,7 +17,6 @@ runs:
     - name: Create necessary directories
       shell: bash
       run: |
-        # IPK 目录 (OpenWrt)
         mkdir -p ssr-ipk-x86/depends ssr-ipk-x86/luci
         mkdir -p ssr-ipk-a53/depends ssr-ipk-a53/luci
         
@@ -41,13 +35,11 @@ runs:
       shell: bash
       run: |
         echo "Downloading libopenssl3 dependencies..."
-        
-        # x86_64 版本
+
         curl -L -f -o ssr-ipk-x86/depends/libopenssl3.ipk \
           "https://dl.openwrt.ai/packages-24.10/x86_64/base/libopenssl-legacy_3.0.18-r1_x86_64.ipk" || true
         cp ssr-ipk-x86/depends/libopenssl3.ipk ssr-apk-x86/depends/ 2>/dev/null || true
-        
-        # aarch64 版本
+   
         curl -L -f -o ssr-ipk-a53/depends/libopenssl3.ipk \
           "https://dl.openwrt.ai/packages-24.10/aarch64_cortex-a53/base/libopenssl-legacy_3.0.18-r1_aarch64_cortex-a53.ipk" || true
         cp ssr-ipk-a53/depends/libopenssl3.ipk ssr-apk-a53/depends/ 2>/dev/null || true
