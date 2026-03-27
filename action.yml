@@ -82,37 +82,44 @@ runs:
     - name: Extract and organize packages for FW3 (iptables)
       shell: bash
       run: |
+        pushd "downloads" >/dev/null || continue
+        for file in *luci*; do
+              [ -e "$file" ] || continue
+              new_file="$(echo "$file" | cut -d'_' -f2-)"
+              if [ ! -e "$new_file" ]; then
+                mv "$file" "$new_file"
+                echo "Renamed: $file -> $new_file"
+              fi
+            done
+        popd >/dev/null
+
         # FW3 + IPK x86_64
         mkdir -p passwall-fw3-ipk-x86/depends passwall-fw3-ipk-x86/luci
         if [ -f downloads/passwall_packages_ipk_x86_64.zip ]; then
           unzip -q downloads/passwall_packages_ipk_x86_64.zip -d passwall-fw3-ipk-x86/depends
         fi
-        cp downloads/luci-app-passwall*.ipk passwall-fw3-ipk-x86/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall-zh-cn*.ipk passwall-fw3-ipk-x86/luci/ 2>/dev/null || true
+        cp downloads/luci*.ipk passwall-fw3-ipk-x86/luci/ 2>/dev/null || true
         
         # FW3 + IPK aarch64
         mkdir -p passwall-fw3-ipk-a53/depends passwall-fw3-ipk-a53/luci
         if [ -f downloads/passwall_packages_ipk_aarch64_cortex-a53.zip ]; then
           unzip -q downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall-fw3-ipk-a53/depends
         fi
-        cp downloads/luci-app-passwall*.ipk passwall-fw3-ipk-a53/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall-zh-cn*.ipk passwall-fw3-ipk-a53/luci/ 2>/dev/null || true
+        cp downloads/luci*.ipk passwall-fw3-ipk-a53/luci/ 2>/dev/null || true
         
         # FW3 + APK x86_64
         mkdir -p passwall-fw3-apk-x86/depends passwall-fw3-apk-x86/luci
         if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
           unzip -q downloads/passwall_packages_apk_x86_64.zip -d passwall-fw3-apk-x86/depends
         fi
-        cp downloads/luci-app-passwall*.apk passwall-fw3-apk-x86/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall-zh-cn*.apk passwall-fw3-apk-x86/luci/ 2>/dev/null || true
+        cp downloads/luci*.apk passwall-fw3-apk-x86/luci/ 2>/dev/null || true
         
         # FW3 + APK aarch64
         mkdir -p passwall-fw3-apk-a53/depends passwall-fw3-apk-a53/luci
         if [ -f downloads/passwall_packages_apk_aarch64_cortex-a53.zip ]; then
           unzip -q downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall-fw3-apk-a53/depends
         fi
-        cp downloads/luci-app-passwall*.apk passwall-fw3-apk-a53/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall-zh-cn*.apk passwall-fw3-apk-a53/luci/ 2>/dev/null || true
+        cp downloads/luci*.apk passwall-fw3-apk-a53/luci/ 2>/dev/null || true
         
         echo "FW3 packages organized"
 
@@ -124,32 +131,28 @@ runs:
         if [ -f downloads/passwall_packages_ipk_x86_64.zip ]; then
           unzip -q downloads/passwall_packages_ipk_x86_64.zip -d passwall-fw4-ipk-x86/depends
         fi
-        cp downloads/luci-app-passwall*.ipk passwall-fw4-ipk-x86/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall-zh-cn*.ipk passwall-fw4-ipk-x86/luci/ 2>/dev/null || true
+        cp downloads/luci* passwall-fw4-ipk-x86/luci/ 2>/dev/null || true
         
         # FW4 + IPK aarch64
         mkdir -p passwall-fw4-ipk-a53/depends passwall-fw4-ipk-a53/luci
         if [ -f downloads/passwall_packages_ipk_aarch64_cortex-a53.zip ]; then
           unzip -q downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall-fw4-ipk-a53/depends
         fi
-        cp downloads/luci-app-passwall*.ipk passwall-fw4-ipk-a53/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall-zh-cn*.ipk passwall-fw4-ipk-a53/luci/ 2>/dev/null || true
+        cp downloads/luci*.ipk passwall-fw4-ipk-a53/luci/ 2>/dev/null || true
         
         # FW4 + APK x86_64
         mkdir -p passwall-fw4-apk-x86/depends passwall-fw4-apk-x86/luci
         if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
           unzip -q downloads/passwall_packages_apk_x86_64.zip -d passwall-fw4-apk-x86/depends
         fi
-        cp downloads/luci-app-passwall*.apk passwall-fw4-apk-x86/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall-zh-cn*.apk passwall-fw4-apk-x86/luci/ 2>/dev/null || true
+        cp downloads/luci*.apk passwall-fw4-apk-x86/luci/ 2>/dev/null || true
         
         # FW4 + APK aarch64
         mkdir -p passwall-fw4-apk-a53/depends passwall-fw4-apk-a53/luci
         if [ -f downloads/passwall_packages_apk_aarch64_cortex-a53.zip ]; then
           unzip -q downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall-fw4-apk-a53/depends
         fi
-        cp downloads/luci-app-passwall*.apk passwall-fw4-apk-a53/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall-zh-cn*.apk passwall-fw4-apk-a53/luci/ 2>/dev/null || true
+        cp downloads/luci*.apk passwall-fw4-apk-a53/luci/ 2>/dev/null || true
         
         echo "FW4 packages organized"
 
