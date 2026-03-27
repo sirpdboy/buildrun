@@ -69,8 +69,7 @@ runs:
         done
         
         RELEASE_INFO=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall/releases/latest)
-        
-        echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("luci.*\\.(ipk|apk)$")) | "\(.name)|\(.browser_download_url)"' | while IFS='|' read -r name url; do
+        echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | contains("luci-app-passwall") or contains("luci-i18n-passwall-zh-cn")) | "\(.name)|\(.browser_download_url)"' | while IFS='|' read -r name url; do
           if [ -n "$url" ] && [ "$url" != "null" ]; then
             echo "Downloading: $name"
             curl -L -f -o "$name" "$url" || echo "Warning: Failed to download $name"
