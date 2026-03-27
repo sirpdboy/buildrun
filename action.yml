@@ -61,7 +61,7 @@ runs:
         RELEASE_INFO=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest)
     
         curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest | \
-        jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.(ipk|apk)$") or test("^luci-i18n-passwall2-zh-cn_.*\\.(ipk|apk)$")) | .browser_download_url' | \
+        jq -r '.assets[] | select(.name | test("luci.*\\.(ipk|apk)$") | .browser_download_url' | \
         while read -r url; do
         [ -n "$url" ] && [ "$url" != "null" ] && curl -L -f -o "$(basename "$url")" "$url" || true
         done
