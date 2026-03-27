@@ -51,54 +51,21 @@ runs:
           "passwall_packages_ipk_aarch64_cortex-a53.zip"
           "passwall_packages_apk_aarch64_cortex-a53.zip"
         )
-        
-        # 下载固定的包
+
         for pkg in "${PACKAGES[@]}"; do
           echo "Downloading: $pkg"
           curl -L -o "$pkg" \
-            "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/$pkg" || echo "Warning: Failed to download $pkg"
+            "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/$pkg" || echo "Warning: Failed to download $pkg" || true
         done
-        
-        # 获取最新release信息
+
         RELEASE_INFO=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest)
-        
-        # 下载luci app ipk
-        LUCI_IPK_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.ipk$")) | .browser_download_url' | head -1)
-        if [ -n "$LUCI_IPK_URL" ] && [ "$LUCI_IPK_URL" != "null" ]; then
-          echo "Downloading luci app ipk: $LUCI_IPK_URL"
-          curl -L -O "$LUCI_IPK_URL"
-        else
-          echo "No luci app ipk found"
-        fi
-        
-        # 下载luci app apk
-        LUCI_APK_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.apk$")) | .browser_download_url' | head -1)
-        if [ -n "$LUCI_APK_URL" ] && [ "$LUCI_APK_URL" != "null" ]; then
-          echo "Downloading luci app apk: $LUCI_APK_URL"
-          curl -L -O "$LUCI_APK_URL"
-        else
-          echo "No luci app apk found"
-        fi
-        
-        # 下载luci简体中文语言包ipk
-        LUCI_I18N_IPK_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("^luci-i18n-passwall2-zh-cn_.*\\.ipk$")) | .browser_download_url')
-        if [ -n "$LUCI_I18N_IPK_URL" ] && [ "$LUCI_I18N_IPK_URL" != "null" ]; then
-          echo "Downloading luci i18n ipk: $LUCI_I18N_IPK_URL"
-          curl -L -O "$LUCI_I18N_IPK_URL"
-        else
-          echo "No luci i18n ipk found"
-        fi
-        
-        # 下载luci简体中文语言包apk
-        LUCI_I18N_APK_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("^luci-i18n-passwall2-zh-cn_.*\\.apk$")) | .browser_download_url')
-        if [ -n "$LUCI_I18N_APK_URL" ] && [ "$LUCI_I18N_APK_URL" != "null" ]; then
-          echo "Downloading luci i18n apk: $LUCI_I18N_APK_URL"
-          curl -L -O "$LUCI_I18N_APK_URL"
-        else
-          echo "No luci i18n apk found"
-        fi
-        
-        # 列出下载的文件
+    
+        curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest | \
+        jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.(ipk|apk)$") or test("^luci-i18n-passwall2-zh-cn_.*\\.(ipk|apk)$")) | .browser_download_url' | \
+        while read -r url; do
+        [ -n "$url" ] && [ "$url" != "null" ] && curl -L -f -o "$(basename "$url")" "$url" || true
+        done
+           
         echo "Downloaded files in downloads directory:"
         ls -la
 
