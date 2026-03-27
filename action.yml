@@ -49,7 +49,8 @@ runs:
     - name: Download latest Nikki files
       shell: bash
       run: |
-        cd downloads 2>/dev/null || mkdir -p downloads && cd downloads
+        rm -rf downloads
+        mkdir -p downloads && cd downloads
         
         RELEASE_INFO=$(curl -s https://api.github.com/repos/nikkinikki-org/OpenWrt-nikki/releases/latest)
         
@@ -65,16 +66,16 @@ runs:
           curl -L -f -o nikki_aarch64_cortex-a53-openwrt-24.10.tar.gz "$AARCH64_URL"
         fi
         
-        X86_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("nikki_x86_64-openwrt-25.12.*\\.tar\\.gz$")) | .browser_download_url')
-        if [ -n "$X86_URL" ] && [ "$X86_URL" != "null" ]; then
+        X86_URLAPK=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("nikki_x86_64-openwrt-25.12.*\\.tar\\.gz$")) | .browser_download_url')
+        if [ -n "$X86_URLAPK" ] && [ "$X86_URLAPK" != "null" ]; then
           echo "Downloading x86_64 package..."
-          curl -L -f -o nikki_x86_64-openwrt-25.12.gz "$X86_URL"
+          curl -L -f -o nikki_x86_64-openwrt-25.12.gz "$X86_URLAPK"
         fi
         
-        AARCH64_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("nikki_aarch64_cortex-a53-openwrt-25.12.*\\.tar\\.gz$")) | .browser_download_url')
-        if [ -n "$AARCH64_URL" ] && [ "$AARCH64_URL" != "null" ]; then
+        AARCH64_URLAPK=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("nikki_aarch64_cortex-a53-openwrt-25.12.*\\.tar\\.gz$")) | .browser_download_url')
+        if [ -n "$AARCH64_URLAPK" ] && [ "$AARCH64_URLAPK" != "null" ]; then
           echo "Downloading aarch64 package..."
-          curl -L -f -o nikki_aarch64_cortex-a53-openwrt-25.12.tar.gz "$AARCH64_URL"
+          curl -L -f -o nikki_aarch64_cortex-a53-openwrt-25.12.tar.gz "$AARCH64_URLAPK"
         fi
 
 
@@ -169,7 +170,8 @@ runs:
         fi
         
         echo "[2/3] Installing Nikki package..."
-        opkg install --force-depends --force-overwrite *.ipk
+        opkg install --force-depends --force-overwrite nikki*.ipk
+        opkg install --force-depends --force-overwrite luci*.ipk
         if [ $? -eq 0 ]; then
             echo "✓ Nikki installed successfully"
         else
@@ -203,16 +205,16 @@ runs:
         fi
         
         echo "[2/3] Installing Nikki package..."
-        for pkg in *.apk; do
+        for pkg in nikki*.apk; do
             if [ -f "$pkg" ]; then
                 apk add --force --allow-untrusted "$pkg"
             fi
         done
-        
-        if [ -f *.ipk ] && [ ! -f *.apk ]; then
-            echo "No APK files found, trying IPK with opkg..."
-            opkg install --force-depends *.ipk 2>/dev/null || true
-        fi
+        for pkg in luci*.apk; do
+            if [ -f "$pkg" ]; then
+                apk add --force --allow-untrusted "$pkg"
+            fi
+        done
         
         echo "[3/3] Installation completed"
         echo "=========================================="
