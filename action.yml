@@ -119,8 +119,8 @@ runs:
         opkg install bash iptables dnsmasq-full curl ca-bundle ipset ip-full \
           iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun \
           kmod-inet-diag unzip luci-compat luci luci-base
-        
-        opkg install *.ipk
+
+        opkg install --force-depends --force-overwrite *.ipk
         mkdir -p /etc/openclash/core/
         [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
         echo "FW3 OpenClash installation completed"
@@ -165,7 +165,7 @@ runs:
         opkg install bash dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml \
           kmod-tun kmod-inet-diag unzip kmod-nft-tproxy luci-compat luci luci-base
         
-        opkg install *.ipk
+        opkg install --force-depends --force-overwrite *.ipk
         mkdir -p /etc/openclash/core/
         [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
         
