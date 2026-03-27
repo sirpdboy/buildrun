@@ -125,6 +125,7 @@ runs:
         [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
         echo "FW3 OpenClash installation completed"
         echo "Please configure kernel version in OpenClash settings"
+        /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw3-ipk-x86/install.sh
         cp openclash-fw3-ipk-x86/install.sh openclash-fw3-ipk-a53/install.sh
@@ -148,6 +149,7 @@ runs:
         
         echo "FW3 OpenClash installation completed for Alpine"
         echo "Please configure kernel version in OpenClash settings"
+        /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw3-apk-x86/install.sh
         cp openclash-fw3-apk-x86/install.sh openclash-fw3-apk-a53/install.sh
@@ -171,6 +173,7 @@ runs:
         
         echo "FW4 OpenClash installation completed"
         echo "Please configure kernel version in OpenClash settings"
+        /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw4-ipk-x86/install.sh
         cp openclash-fw4-ipk-x86/install.sh openclash-fw4-ipk-a53/install.sh
@@ -194,6 +197,7 @@ runs:
         
         echo "FW4 OpenClash installation completed for Alpine"
         echo "Please configure kernel version in OpenClash settings"
+        /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw4-apk-x86/install.sh
         cp openclash-fw4-apk-x86/install.sh openclash-fw4-apk-a53/install.sh
@@ -216,13 +220,11 @@ runs:
         
         cd makeself
         
-        # FW3 (iptables) 包
         [ -d "openclash-fw3-ipk-x86" ] && ./makeself.sh openclash-fw3-ipk-x86/ openclash-fw3-ipk-x86_64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for OpenWrt x86_64" ./install.sh
         [ -d "openclash-fw3-ipk-a53" ] && ./makeself.sh openclash-fw3-ipk-a53/ openclash-fw3-ipk-aarch64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for OpenWrt aarch64" ./install.sh
         [ -d "openclash-fw3-apk-x86" ] && ./makeself.sh openclash-fw3-apk-x86/ openclash-fw3-apk-x86_64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for Alpine x86_64" ./install.sh
         [ -d "openclash-fw3-apk-a53" ] && ./makeself.sh openclash-fw3-apk-a53/ openclash-fw3-apk-aarch64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for Alpine aarch64" ./install.sh
         
-        # FW4 (nftables) 包
         [ -d "openclash-fw4-ipk-x86" ] && ./makeself.sh openclash-fw4-ipk-x86/ openclash-fw4-ipk-x86_64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for OpenWrt x86_64" ./install.sh
         [ -d "openclash-fw4-ipk-a53" ] && ./makeself.sh openclash-fw4-ipk-a53/ openclash-fw4-ipk-aarch64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for OpenWrt aarch64" ./install.sh
         [ -d "openclash-fw4-apk-x86" ] && ./makeself.sh openclash-fw4-apk-x86/ openclash-fw4-apk-x86_64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for Alpine x86_64" ./install.sh
