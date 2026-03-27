@@ -1,0 +1,280 @@
+name: "Build SSR Plus run files"
+description: "Build SSR Plus (shadowsocksr-libev) run file with IPK (OpenWrt) and APK (Alpine) support"
+author: "sirpdboy"
+branding:
+  icon: 'package'
+  color: 'green'
+
+inputs:
+  OUTPUT_DIR:
+    description: "Output directory for run file"
+    required: false
+    default: "./pakrun"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create necessary directories
+      shell: bash
+      run: |
+        mkdir -p ssr-ipk-x86/depends ssr-ipk-x86/main
+        mkdir -p ssr-ipk-a53/depends ssr-ipk-a53/main
+        
+        mkdir -p makeself ${{ inputs.OUTPUT_DIR }}
+        echo "All directories created"
+
+    - name: Set package version
+      id: set_version
+      shell: bash
+      run: |
+        PKG_VERSION="packages-24.10"
+        echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_ENV
+        echo "Package version: $PKG_VERSION"
+
+    - name: Download libopenssl3 dependency
+      shell: bash
+      run: |
+        echo "Downloading libopenssl3 dependencies..."
+        
+        # x86_64 版本
+        curl -L -f -o ssr-ipk-x86/depends/libopenssl3.ipk \
+          "https://dl.openwrt.ai/packages-24.10/x86_64/base/libopenssl-legacy_3.0.18-r1_x86_64.ipk" || true
+        cp ssr-ipk-x86/depends/libopenssl3.ipk ssr-apk-x86/depends/ 2>/dev/null || true
+        
+        # aarch64 版本
+        curl -L -f -o ssr-ipk-a53/depends/libopenssl3.ipk \
+          "https://dl.openwrt.ai/packages-24.10/aarch64_cortex-a53/base/libopenssl-legacy_3.0.18-r1_aarch64_cortex-a53.ipk" || true
+        cp ssr-ipk-a53/depends/libopenssl3.ipk ssr-apk-a53/depends/ 2>/dev/null || true
+        
+        echo "libopenssl3 downloaded"
+
+    - name: Download SSR Plus packages
+      shell: bash
+      run: |
+        echo "Downloading SSR Plus packages for version: $PKG_VERSION"
+        
+        FILE_PREFIXES=(
+          "shadowsocks-libev-ss-server" "dns2tcp" "lua-neturl" "chinadns-ng"
+          "dns2socks" "hysteria" "ipt2socks" "microsocks" "mosdns" "naiveproxy"
+          "redsocks2" "shadowsocksr-libev" "shadowsocks-rust" "shadow-tls"
+          "simple-obfs-client" "tcping" "trojan" "tuic-client" "v2ray-plugin"
+          "xray-core"
+        )
+        EXCLUDE_PREFIXES=(
+          "luci-app-chinadns-ng" "luci-app-microsocks" "luci-app-mosdns"
+          "luci-app-naiveproxy" "luci-app-redsocks2" "luci-app-shadowsocks"
+        )
+        download_packages() {
+          local arch=$1
+          local base_url=$2
+          local target_dir=$3
+          
+          echo "Fetching from $base_url"
+          wget -qO- "$base_url" 2>/dev/null | \
+          while IFS= read -r line; do
+            for prefix in "${FILE_PREFIXES[@]}"; do
+              if [[ "$line" == *"$prefix"* ]]; then
+                file=$(echo "$line" | grep -oP 'href="\K[^"]*' | head -1)
+                if [ -z "$file" ]; then
+                  continue
+                fi
+                
+                exclude=0
+                for exclude_prefix in "${EXCLUDE_PREFIXES[@]}"; do
+                  if [[ "$file" == $exclude_prefix* ]]; then
+                    exclude=1
+                    break
+                  fi
+                done
+                [ $exclude -eq 1 ] && continue
+                
+                file_url="${base_url}${file}"
+                echo "  Downloading: $file"
+                curl -L -f --connect-timeout 10 "$file_url" -o "$target_dir/$(basename "$file_url")" 2>/dev/null || true
+              fi
+            done
+          done
+        }
+        
+        BASE_URL_X86="https://dl.openwrt.ai/$PKG_VERSION/x86_64/kiddin9/"
+        download_packages "x86_64" "$BASE_URL_X86" "ssr-ipk-x86/depends"
+        
+        BASE_URL_A53="https://dl.openwrt.ai/$PKG_VERSION/aarch64_cortex-a53/kiddin9/"
+        download_packages "aarch64" "$BASE_URL_A53" "ssr-ipk-a53/depends"
+        
+        echo "Package download completed"
+
+    - name: Download additional dependencies (libopenssl3, libudns)
+      shell: bash
+      run: |
+        echo "Downloading additional dependencies..."
+        
+        FILE_PREFIXES=("libopenssl3" "libudns")
+        
+        download_deps() {
+          local arch=$1
+          local base_url=$2
+          local target_dir=$3
+          
+          wget -qO- "$base_url" 2>/dev/null | \
+          while IFS= read -r line; do
+            for prefix in "${FILE_PREFIXES[@]}"; do
+              if [[ "$line" == *"$prefix"* ]]; then
+                file=$(echo "$line" | grep -oP 'href="\K[^"]*' | head -1)
+                if [ -z "$file" ]; then
+                  continue
+                fi
+                file_url="${base_url}${file}"
+                echo "  Downloading: $file"
+                curl -L -f "$file_url" -o "$target_dir/$(basename "$file_url")" 2>/dev/null || true
+              fi
+            done
+          done
+        }
+        
+        BASE_X86="https://dl.openwrt.ai/$PKG_VERSION/x86_64/base/"
+        download_deps "x86_64" "$BASE_X86" "ssr-ipk-x86/depends"
+        
+        BASE_A53="https://dl.openwrt.ai/$PKG_VERSION/aarch64_cortex-a53/base/"
+        download_deps "aarch64" "$BASE_A53" "ssr-ipk-a53/depends"
+        
+        PKG_X86="https://dl.openwrt.ai/$PKG_VERSION/x86_64/packages/"
+        download_deps "x86_64" "$PKG_X86" "ssr-ipk-x86/depends"
+        
+        PKG_A53="https://dl.openwrt.ai/$PKG_VERSION/aarch64_cortex-a53/packages/"
+        download_deps "aarch64" "$PKG_A53" "ssr-ipk-a53/depends"
+        
+        cp ssr-ipk-x86/depends/* ssr-apk-x86/depends/ 2>/dev/null || true
+        cp ssr-ipk-a53/depends/* ssr-apk-a53/depends/ 2>/dev/null || true
+        
+        echo "Additional dependencies downloaded"
+
+    - name: Move SSR Plus main package
+      shell: bash
+      run: |
+        mv ssr-ipk-x86/depends/luci-app-ssr-plus*.ipk ssr-ipk-x86/main/ 2>/dev/null || true
+        mv ssr-ipk-a53/depends/luci-app-ssr-plus*.ipk ssr-ipk-a53/main/ 2>/dev/null || true
+        
+        cp ssr-ipk-x86/main/* ssr-apk-x86/main/ 2>/dev/null || true
+        cp ssr-ipk-a53/main/* ssr-apk-a53/main/ 2>/dev/null || true
+        
+        rm -f ssr-ipk-x86/depends/luci-app-trojan-server* 2>/dev/null || true
+        rm -f ssr-ipk-a53/depends/luci-app-trojan-server* 2>/dev/null || true
+        
+        echo "Main package moved"
+
+    - name: Extract version info
+      id: extract_version
+      shell: bash
+      run: |
+        file=$(ls ssr-ipk-a53/main/luci-app-ssr-plus*.ipk 2>/dev/null | head -n1)
+        if [ -n "$file" ] && [ -f "$file" ]; then
+          base=${file##*/}
+          tmp=${base#*_}
+          tmp=${tmp%_all.ipk}
+          version=${tmp/-/_}
+          echo "SSRP_VERSION=$version" >> $GITHUB_ENV
+          echo "Version: $version"
+        else
+          echo "SSRP_VERSION=latest" >> $GITHUB_ENV
+          echo "Version file not found, using 'latest'"
+        fi
+
+    - name: List downloaded files
+      shell: bash
+      run: |
+        echo "=========================================="
+        echo "IPK x86_64 depends:"
+        ls -lh ssr-ipk-x86/depends/ | head -20
+        echo "IPK x86_64 main:"
+        ls -lh ssr-ipk-x86/main/
+        echo "IPK aarch64 depends:"
+        ls -lh ssr-ipk-a53/depends/ | head -20
+        echo "IPK aarch64 main:"
+        ls -lh ssr-ipk-a53/main/
+        echo "=========================================="
+
+    - name: Create install.sh scripts for IPK (OpenWrt)
+      shell: bash
+      run: |
+        cat <<'EOF' > ssr-ipk-x86/install.sh
+        #!/bin/sh
+        # SSR Plus installer for OpenWrt x86_64
+        echo "=========================================="
+        echo "SSR Plus Installer for OpenWrt x86_64"
+        echo "=========================================="
+        
+        echo "[1/4] Updating package lists..."
+        opkg update
+        if [ $? -ne 0 ]; then
+            echo "⚠ opkg update failed, continuing..."
+        fi
+        
+        echo "[2/4] Installing dependencies..."
+        opkg install depends/*.ipk --force-depends 2>/dev/null || true
+        
+        echo "[3/4] Installing SSR Plus main package..."
+        opkg install main/*.ipk --force-depends
+        if [ $? -eq 0 ]; then
+            echo "✓ SSR Plus installed successfully"
+        else
+            echo "⚠ SSR Plus installed with warnings"
+        fi
+        
+        echo "[4/4] Installation completed"
+        echo "=========================================="
+        echo "SSR Plus installation completed!"
+        echo "Please visit Luci -> Services -> SSR Plus to configure"
+        EOF
+        chmod +x ssr-ipk-x86/install.sh
+        cp ssr-ipk-x86/install.sh ssr-ipk-a53/install.sh
+        echo "IPK install scripts created"
+
+
+    - name: Clone makeself repository
+      shell: bash
+      run: |
+        if [ ! -d "makeself/.git" ]; then
+          git clone https://github.com/megastep/makeself.git makeself/
+        fi
+        chmod +x makeself/makeself.sh
+
+    - name: Move directories to makeself
+      shell: bash
+      run: |
+        for dir in ssr-ipk-x86 ssr-ipk-a53; do
+          if [ -d "$dir" ] && [ "$(ls -A "$dir" 2>/dev/null)" ]; then
+            mv "$dir" makeself/
+            echo "Moved $dir to makeself/"
+          else
+            echo "Skipping empty directory: $dir"
+          fi
+        done
+
+    - name: Create self-extracting packages
+      shell: bash
+      run: |
+        cd makeself
+        
+        if [ -d "ssr-ipk-x86" ] && [ "$(ls -A ssr-ipk-x86)" ]; then
+          ./makeself.sh ssr-ipk-x86/ ssr-plus-ipk-x86_64-${{ env.SSRP_VERSION }}.run \
+            "SSR Plus installer for OpenWrt x86_64" ./install.sh
+          echo "Created: ssr-plus-ipk-x86_64-${{ env.SSRP_VERSION }}.run"
+        fi
+        
+        if [ -d "ssr-ipk-a53" ] && [ "$(ls -A ssr-ipk-a53)" ]; then
+          ./makeself.sh ssr-ipk-a53/ ssr-plus-ipk-aarch64-${{ env.SSRP_VERSION }}.run \
+            "SSR Plus installer for OpenWrt aarch64" ./install.sh
+          echo "Created: ssr-plus-ipk-aarch64-${{ env.SSRP_VERSION }}.run"
+        fi
+
+        
+        echo "All packages created:"
+        ls -lh *.run
+
+    - name: Copy files to output directory
+      shell: bash
+      run: |
+        cp makeself/*.run ${{ inputs.OUTPUT_DIR }} 2>/dev/null || true
+        echo "Files copied to ${{ inputs.OUTPUT_DIR }}"
+        ls -lh ${{ inputs.OUTPUT_DIR }}
