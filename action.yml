@@ -22,7 +22,6 @@ runs:
     - name: Create necessary directories
       shell: bash
       run: |
-        # 创建 8 个不同的目录结构
         # FW3 (iptables) + IPK (OpenWrt)
         mkdir -p openclash-fw3-ipk-x86 openclash-fw3-ipk-a53
         # FW3 (iptables) + APK (Alpine)
@@ -46,13 +45,11 @@ runs:
       shell: bash
       run: |
         if [ -d "OpenClash/master" ]; then
-          # 复制 IPK 文件到所有 IPK 目录
           for dir in openclash-fw3-ipk-x86 openclash-fw3-ipk-a53 \
                       openclash-fw4-ipk-x86 openclash-fw4-ipk-a53; do
             cp OpenClash/master/*.ipk $dir/ 2>/dev/null || echo "No IPK files for $dir"
           done
           
-          # 复制 IPK 作为 APK 包的占位（实际需要转换或从 release 下载）
           for dir in openclash-fw3-apk-x86 openclash-fw3-apk-a53 \
                       openclash-fw4-apk-x86 openclash-fw4-apk-a53; do
             cp OpenClash/master/*.ipk $dir/ 2>/dev/null || true
@@ -87,7 +84,6 @@ runs:
     - name: Download and extract Meta cores
       shell: bash
       run: |
-        # 下载并解压 x86_64 版本到所有 x86 目录
         if [ -f "Meta/master/meta/clash-linux-amd64-v1.tar.gz" ]; then
           for dir in openclash-fw3-ipk-x86 openclash-fw3-apk-x86 \
                       openclash-fw4-ipk-x86 openclash-fw4-apk-x86; do
@@ -99,7 +95,6 @@ runs:
           echo "x86_64 core file not found"
         fi
         
-        # 下载并解压 aarch64 版本到所有 a53 目录
         if [ -f "Meta/master/meta/clash-linux-arm64.tar.gz" ]; then
           for dir in openclash-fw3-ipk-a53 openclash-fw3-apk-a53 \
                       openclash-fw4-ipk-a53 openclash-fw4-apk-a53; do
@@ -125,13 +120,9 @@ runs:
           iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun \
           kmod-inet-diag unzip luci-compat luci luci-base
         
-        # 安装主程序
         opkg install *.ipk
-        
-        # 部署核心文件
         mkdir -p /etc/openclash/core/
         [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
-        
         echo "FW3 OpenClash installation completed"
         echo "Please configure kernel version in OpenClash settings"
         EOF
@@ -149,12 +140,9 @@ runs:
           iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun \
           kmod-inet-diag unzip luci-compat luci luci-base
         
-        # 强制安装本地包
         for pkg in *.apk; do
           [ -f "$pkg" ] && apk add --force --allow-untrusted "$pkg"
         done
-        
-        # 部署核心文件
         mkdir -p /etc/openclash/core/
         [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
         
@@ -177,10 +165,7 @@ runs:
         opkg install bash dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml \
           kmod-tun kmod-inet-diag unzip kmod-nft-tproxy luci-compat luci luci-base
         
-        # 安装主程序
         opkg install *.ipk
-        
-        # 部署核心文件
         mkdir -p /etc/openclash/core/
         [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
         
@@ -200,12 +185,10 @@ runs:
         apk add bash dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml \
           kmod-tun kmod-inet-diag unzip kmod-nft-tproxy luci-compat luci luci-base
         
-        # 强制安装本地包
         for pkg in *.apk; do
           [ -f "$pkg" ] && apk add --force --allow-untrusted "$pkg"
         done
         
-        # 部署核心文件
         mkdir -p /etc/openclash/core/
         [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
         
@@ -226,7 +209,6 @@ runs:
     - name: Create self-extracting packages
       shell: bash
       run: |
-        # 移动所有目录到 makeself
         mv openclash-fw3-ipk-x86 openclash-fw3-ipk-a53 \
            openclash-fw3-apk-x86 openclash-fw3-apk-a53 \
            openclash-fw4-ipk-x86 openclash-fw4-ipk-a53 \
