@@ -1,0 +1,257 @@
+# ======================================
+# Build OpenClash run files (FW3/FW4 Support)
+# Lisence: MIT
+# Author: sirpdboy
+# ======================================
+name: "Build OpenClash run files"
+description: "Build OpenClash run file with FW3 (iptables) and FW4 (nftables) support"
+author: "sirpdboy"
+branding:
+  icon: 'package'
+  color: 'green'
+
+inputs:
+  OUTPUT_DIR:
+    description: "Output directory for run file"
+    required: false
+    default: "./pakrun"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create necessary directories
+      shell: bash
+      run: |
+        # 创建 8 个不同的目录结构
+        # FW3 (iptables) + IPK (OpenWrt)
+        mkdir -p openclash-fw3-ipk-x86 openclash-fw3-ipk-a53
+        # FW3 (iptables) + APK (Alpine)
+        mkdir -p openclash-fw3-apk-x86 openclash-fw3-apk-a53
+        # FW4 (nftables) + IPK (OpenWrt)
+        mkdir -p openclash-fw4-ipk-x86 openclash-fw4-ipk-a53
+        # FW4 (nftables) + APK (Alpine)
+        mkdir -p openclash-fw4-apk-x86 openclash-fw4-apk-a53
+        
+        mkdir -p OpenClash Meta makeself ${{ inputs.OUTPUT_DIR }}
+        echo "All directories created"
+
+    - name: Checkout OpenClash package branch
+      uses: actions/checkout@v4
+      with:
+        repository: vernesong/OpenClash
+        path: OpenClash
+        ref: package
+
+    - name: Copy OpenClash package files
+      shell: bash
+      run: |
+        if [ -d "OpenClash/master" ]; then
+          # 复制 IPK 文件到所有 IPK 目录
+          for dir in openclash-fw3-ipk-x86 openclash-fw3-ipk-a53 \
+                      openclash-fw4-ipk-x86 openclash-fw4-ipk-a53; do
+            cp OpenClash/master/*.ipk $dir/ 2>/dev/null || echo "No IPK files for $dir"
+          done
+          
+          # 复制 IPK 作为 APK 包的占位（实际需要转换或从 release 下载）
+          for dir in openclash-fw3-apk-x86 openclash-fw3-apk-a53 \
+                      openclash-fw4-apk-x86 openclash-fw4-apk-a53; do
+            cp OpenClash/master/*.ipk $dir/ 2>/dev/null || true
+          done
+          
+          echo "Package files copied"
+        else
+          echo "OpenClash/master directory not found"
+          exit 1
+        fi
+
+    - name: Extract version info
+      id: extract_version
+      shell: bash
+      run: |
+        if [ -f "OpenClash/master/version" ]; then
+          first_line=$(head -n 1 OpenClash/master/version | tr -d '\n\r')
+          echo "VERSION=$first_line" >> $GITHUB_ENV
+          echo "Version: $first_line"
+        else
+          echo "VERSION=latest" >> $GITHUB_ENV
+          echo "Version file not found, using 'latest'"
+        fi
+
+    - name: Checkout OpenClash core branch
+      uses: actions/checkout@v4
+      with:
+        repository: vernesong/OpenClash
+        path: Meta
+        ref: core
+
+    - name: Download and extract Meta cores
+      shell: bash
+      run: |
+        # 下载并解压 x86_64 版本到所有 x86 目录
+        if [ -f "Meta/master/meta/clash-linux-amd64-v1.tar.gz" ]; then
+          for dir in openclash-fw3-ipk-x86 openclash-fw3-apk-x86 \
+                      openclash-fw4-ipk-x86 openclash-fw4-apk-x86; do
+            tar -xzf Meta/master/meta/clash-linux-amd64-v1.tar.gz -C $dir
+            mv $dir/clash $dir/clash_meta 2>/dev/null || true
+          done
+          echo "x86_64 core extracted to all x86 directories"
+        else
+          echo "x86_64 core file not found"
+        fi
+        
+        # 下载并解压 aarch64 版本到所有 a53 目录
+        if [ -f "Meta/master/meta/clash-linux-arm64.tar.gz" ]; then
+          for dir in openclash-fw3-ipk-a53 openclash-fw3-apk-a53 \
+                      openclash-fw4-ipk-a53 openclash-fw4-apk-a53; do
+            tar -xzf Meta/master/meta/clash-linux-arm64.tar.gz -C $dir
+            mv $dir/clash $dir/clash_meta 2>/dev/null || true
+          done
+          echo "aarch64 core extracted to all a53 directories"
+        else
+          echo "aarch64 core file not found"
+        fi
+
+    - name: Create install.sh scripts for FW3 (iptables)
+      shell: bash
+      run: |
+        # FW3 + IPK (OpenWrt)
+        cat <<'EOF' > openclash-fw3-ipk-x86/install.sh
+        #!/bin/sh
+        # OpenClash FW3 (iptables) installer for OpenWrt x86_64
+        echo "Installing OpenClash with FW3 (iptables) for OpenWrt x86_64..."
+        
+        opkg update
+        opkg install bash iptables dnsmasq-full curl ca-bundle ipset ip-full \
+          iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun \
+          kmod-inet-diag unzip luci-compat luci luci-base
+        
+        # 安装主程序
+        opkg install *.ipk
+        
+        # 部署核心文件
+        mkdir -p /etc/openclash/core/
+        [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
+        
+        echo "FW3 OpenClash installation completed"
+        echo "Please configure kernel version in OpenClash settings"
+        EOF
+        chmod +x openclash-fw3-ipk-x86/install.sh
+        cp openclash-fw3-ipk-x86/install.sh openclash-fw3-ipk-a53/install.sh
+        
+        # FW3 + APK (Alpine)
+        cat <<'EOF' > openclash-fw3-apk-x86/install.sh
+        #!/bin/sh
+        # OpenClash FW3 (iptables) installer for Alpine Linux x86_64
+        echo "Installing OpenClash with FW3 (iptables) for Alpine Linux x86_64..."
+        
+        apk update
+        apk add bash iptables dnsmasq-full curl ca-bundle ipset ip-full \
+          iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun \
+          kmod-inet-diag unzip luci-compat luci luci-base
+        
+        # 强制安装本地包
+        for pkg in *.apk; do
+          [ -f "$pkg" ] && apk add --force --allow-untrusted "$pkg"
+        done
+        
+        # 部署核心文件
+        mkdir -p /etc/openclash/core/
+        [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
+        
+        echo "FW3 OpenClash installation completed for Alpine"
+        echo "Please configure kernel version in OpenClash settings"
+        EOF
+        chmod +x openclash-fw3-apk-x86/install.sh
+        cp openclash-fw3-apk-x86/install.sh openclash-fw3-apk-a53/install.sh
+
+    - name: Create install.sh scripts for FW4 (nftables)
+      shell: bash
+      run: |
+        # FW4 + IPK (OpenWrt)
+        cat <<'EOF' > openclash-fw4-ipk-x86/install.sh
+        #!/bin/sh
+        # OpenClash FW4 (nftables) installer for OpenWrt x86_64
+        echo "Installing OpenClash with FW4 (nftables) for OpenWrt x86_64..."
+        
+        opkg update
+        opkg install bash dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml \
+          kmod-tun kmod-inet-diag unzip kmod-nft-tproxy luci-compat luci luci-base
+        
+        # 安装主程序
+        opkg install *.ipk
+        
+        # 部署核心文件
+        mkdir -p /etc/openclash/core/
+        [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
+        
+        echo "FW4 OpenClash installation completed"
+        echo "Please configure kernel version in OpenClash settings"
+        EOF
+        chmod +x openclash-fw4-ipk-x86/install.sh
+        cp openclash-fw4-ipk-x86/install.sh openclash-fw4-ipk-a53/install.sh
+        
+        # FW4 + APK (Alpine)
+        cat <<'EOF' > openclash-fw4-apk-x86/install.sh
+        #!/bin/sh
+        # OpenClash FW4 (nftables) installer for Alpine Linux x86_64
+        echo "Installing OpenClash with FW4 (nftables) for Alpine Linux x86_64..."
+        
+        apk update
+        apk add bash dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml \
+          kmod-tun kmod-inet-diag unzip kmod-nft-tproxy luci-compat luci luci-base
+        
+        # 强制安装本地包
+        for pkg in *.apk; do
+          [ -f "$pkg" ] && apk add --force --allow-untrusted "$pkg"
+        done
+        
+        # 部署核心文件
+        mkdir -p /etc/openclash/core/
+        [ -f "clash_meta" ] && cp clash_meta /etc/openclash/core/ && chmod 755 /etc/openclash/core/clash_meta
+        
+        echo "FW4 OpenClash installation completed for Alpine"
+        echo "Please configure kernel version in OpenClash settings"
+        EOF
+        chmod +x openclash-fw4-apk-x86/install.sh
+        cp openclash-fw4-apk-x86/install.sh openclash-fw4-apk-a53/install.sh
+
+    - name: Clone makeself repository
+      shell: bash
+      run: |
+        if [ ! -d "makeself/.git" ]; then
+          git clone https://github.com/megastep/makeself.git makeself/
+        fi
+        chmod +x makeself/makeself.sh
+
+    - name: Create self-extracting packages
+      shell: bash
+      run: |
+        # 移动所有目录到 makeself
+        mv openclash-fw3-ipk-x86 openclash-fw3-ipk-a53 \
+           openclash-fw3-apk-x86 openclash-fw3-apk-a53 \
+           openclash-fw4-ipk-x86 openclash-fw4-ipk-a53 \
+           openclash-fw4-apk-x86 openclash-fw4-apk-a53 makeself/
+        
+        cd makeself
+        
+        # FW3 (iptables) 包
+        [ -d "openclash-fw3-ipk-x86" ] && ./makeself.sh openclash-fw3-ipk-x86/ openclash-fw3-ipk-x86_64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for OpenWrt x86_64" ./install.sh
+        [ -d "openclash-fw3-ipk-a53" ] && ./makeself.sh openclash-fw3-ipk-a53/ openclash-fw3-ipk-aarch64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for OpenWrt aarch64" ./install.sh
+        [ -d "openclash-fw3-apk-x86" ] && ./makeself.sh openclash-fw3-apk-x86/ openclash-fw3-apk-x86_64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for Alpine x86_64" ./install.sh
+        [ -d "openclash-fw3-apk-a53" ] && ./makeself.sh openclash-fw3-apk-a53/ openclash-fw3-apk-aarch64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for Alpine aarch64" ./install.sh
+        
+        # FW4 (nftables) 包
+        [ -d "openclash-fw4-ipk-x86" ] && ./makeself.sh openclash-fw4-ipk-x86/ openclash-fw4-ipk-x86_64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for OpenWrt x86_64" ./install.sh
+        [ -d "openclash-fw4-ipk-a53" ] && ./makeself.sh openclash-fw4-ipk-a53/ openclash-fw4-ipk-aarch64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for OpenWrt aarch64" ./install.sh
+        [ -d "openclash-fw4-apk-x86" ] && ./makeself.sh openclash-fw4-apk-x86/ openclash-fw4-apk-x86_64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for Alpine x86_64" ./install.sh
+        [ -d "openclash-fw4-apk-a53" ] && ./makeself.sh openclash-fw4-apk-a53/ openclash-fw4-apk-aarch64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for Alpine aarch64" ./install.sh
+        
+        echo "All packages created:"
+        ls -lh *.run
+
+    - name: Copy files to output directory
+      shell: bash
+      run: |
+        cp makeself/*.run ${{ inputs.OUTPUT_DIR }} 2>/dev/null || true
+        echo "Files copied to ${{ inputs.OUTPUT_DIR }}"
+        ls -lh ${{ inputs.OUTPUT_DIR }}
