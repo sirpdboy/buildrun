@@ -1,10 +1,10 @@
 # ======================================
-# https://github.com/sirpdboy/buildrun
+# Build Passwall2 run files (FW3/FW4 Support)
 # Lisence: MIT
 # Author: sirpdboy
 # ======================================
 name: "Build Passwall2 run files"
-description: "Build Passwall2 run file as a reusable composite action"
+description: "Build Passwall2 run file with FW3 (iptables) and FW4 (nftables) support"
 author: "sirpdboy"
 branding:
   icon: 'package'
@@ -38,10 +38,21 @@ runs:
           git clone https://github.com/megastep/makeself.git
         fi
 
+    - name: Create directory structure for FW3 and FW4
+      shell: bash
+      run: |
+        mkdir -p passwall-fw3-ipk-x86 passwall-fw3-ipk-a53
+        mkdir -p passwall-fw3-apk-x86 passwall-fw3-apk-a53
+        
+        mkdir -p passwall-fw4-ipk-x86 passwall-fw4-ipk-a53
+        mkdir -p passwall-fw4-apk-x86 passwall-fw4-apk-a53
+        
+        mkdir -p downloads
+        echo "Directory structure created"
+
     - name: Download latest Passwall2 files
       shell: bash
       run: |
-        mkdir -p downloads
         cd downloads
         
         PACKAGES=(
@@ -50,115 +61,143 @@ runs:
           "passwall_packages_ipk_aarch64_cortex-a53.zip"
           "passwall_packages_apk_aarch64_cortex-a53.zip"
         )
-
+        
         for pkg in "${PACKAGES[@]}"; do
           echo "Downloading: $pkg"
-          curl -L -o "$pkg" \
-            "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/$pkg" || echo "Warning: Failed to download $pkg" || true
+          curl -L -f -o "$pkg" \
+            "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/$pkg" || echo "Warning: Failed to download $pkg"
         done
- 
-        echo "Fetching release info..."
+        
         RELEASE_INFO=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest)
-    
-        echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("luci.*\\.(ipk|apk)$")) | .browser_download_url' | \
-        while IFS= read -r url; do
-        if [[ -z "$url" || "$url" == "null" || ! "$url" =~ ^https?:// ]]; then
-        echo "Skipping invalid URL: $url"
-        continue
-        fi
-      
-        filename=$(basename "$url")
-        echo "Downloading: $filename from $url"
-        if curl -L -f -o "$filename" "$url"; then
-        echo "Successfully downloaded: $filename"
-        else
-        echo "Failed to download: $filename"
-        fi
+        
+        echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("luci.*\\.(ipk|apk)$")) | "\(.name)|\(.browser_download_url)"' | while IFS='|' read -r name url; do
+          if [ -n "$url" ] && [ "$url" != "null" ]; then
+            echo "Downloading: $name"
+            curl -L -f -o "$name" "$url" || echo "Warning: Failed to download $name"
+          fi
         done
-           
-        echo "Downloaded files in downloads directory:"
+        
+        echo "Download completed"
         ls -la
 
-    - name: Extract and organize ipk files for x86_64
+    - name: Extract and organize packages for FW3 (iptables)
       shell: bash
       run: |
-        mkdir -p passwall_x86_64_ipk/depends passwall_x86_64_ipk/luci
+        # FW3 + IPK x86_64
+        mkdir -p passwall-fw3-ipk-x86/depends passwall-fw3-ipk-x86/luci
         if [ -f downloads/passwall_packages_ipk_x86_64.zip ]; then
-          unzip -q downloads/passwall_packages_ipk_x86_64.zip -d passwall_x86_64_ipk/depends
-          rm downloads/passwall_packages_ipk_x86_64.zip
+          unzip -q downloads/passwall_packages_ipk_x86_64.zip -d passwall-fw3-ipk-x86/depends
         fi
-        cp downloads/luci-app-passwall2*.ipk passwall_x86_64_ipk/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall_x86_64_ipk/luci/ 2>/dev/null || true
-        echo "x86_64 ipk files organized"
-
-    - name: Extract and organize apk files for x86_64
-      shell: bash
-      run: |
-        mkdir -p passwall_x86_64_apk/depends passwall_x86_64_apk/luci
-        if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
-          unzip -q downloads/passwall_packages_apk_x86_64.zip -d passwall_x86_64_apk/depends
-          rm downloads/passwall_packages_apk_x86_64.zip
-        fi
-        cp downloads/luci-app-passwall2*.apk passwall_x86_64_apk/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall_x86_64_apk/luci/ 2>/dev/null || true
-        echo "x86_64 apk files organized"
-
-    - name: Extract and organize ipk files for aarch64_cortex-a53
-      shell: bash
-      run: |
-        mkdir -p passwall_aarch64_ipk/depends passwall_aarch64_ipk/luci
+        cp downloads/luci-app-passwall2*.ipk passwall-fw3-ipk-x86/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall-fw3-ipk-x86/luci/ 2>/dev/null || true
+        
+        # FW3 + IPK aarch64
+        mkdir -p passwall-fw3-ipk-a53/depends passwall-fw3-ipk-a53/luci
         if [ -f downloads/passwall_packages_ipk_aarch64_cortex-a53.zip ]; then
-          unzip -q downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall_aarch64_ipk/depends
-          rm downloads/passwall_packages_ipk_aarch64_cortex-a53.zip
+          unzip -q downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall-fw3-ipk-a53/depends
         fi
-        cp downloads/luci-app-passwall2*.ipk passwall_aarch64_ipk/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall_aarch64_ipk/luci/ 2>/dev/null || true
-        echo "aarch64 ipk files organized"
-
-    - name: Extract and organize apk files for aarch64_cortex-a53
-      shell: bash
-      run: |
-        mkdir -p passwall_aarch64_apk/depends passwall_aarch64_apk/luci
+        cp downloads/luci-app-passwall2*.ipk passwall-fw3-ipk-a53/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall-fw3-ipk-a53/luci/ 2>/dev/null || true
+        
+        # FW3 + APK x86_64
+        mkdir -p passwall-fw3-apk-x86/depends passwall-fw3-apk-x86/luci
+        if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
+          unzip -q downloads/passwall_packages_apk_x86_64.zip -d passwall-fw3-apk-x86/depends
+        fi
+        cp downloads/luci-app-passwall2*.apk passwall-fw3-apk-x86/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall-fw3-apk-x86/luci/ 2>/dev/null || true
+        
+        # FW3 + APK aarch64
+        mkdir -p passwall-fw3-apk-a53/depends passwall-fw3-apk-a53/luci
         if [ -f downloads/passwall_packages_apk_aarch64_cortex-a53.zip ]; then
-          unzip -q downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall_aarch64_apk/depends
-          rm downloads/passwall_packages_apk_aarch64_cortex-a53.zip
+          unzip -q downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall-fw3-apk-a53/depends
         fi
-        cp downloads/luci-app-passwall2*.apk passwall_aarch64_apk/luci/ 2>/dev/null || true
-        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall_aarch64_apk/luci/ 2>/dev/null || true
-        echo "aarch64 apk files organized"
+        cp downloads/luci-app-passwall2*.apk passwall-fw3-apk-a53/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall-fw3-apk-a53/luci/ 2>/dev/null || true
+        
+        echo "FW3 packages organized"
 
-    - name: Create install.sh scripts
+    - name: Extract and organize packages for FW4 (nftables)
       shell: bash
       run: |
-        # IPK 安装脚本（OpenWrt）
-        cat <<'EOF' > passwall_x86_64_ipk/install.sh
+        # FW4 + IPK x86_64
+        mkdir -p passwall-fw4-ipk-x86/depends passwall-fw4-ipk-x86/luci
+        if [ -f downloads/passwall_packages_ipk_x86_64.zip ]; then
+          unzip -q downloads/passwall_packages_ipk_x86_64.zip -d passwall-fw4-ipk-x86/depends
+        fi
+        cp downloads/luci-app-passwall2*.ipk passwall-fw4-ipk-x86/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall-fw4-ipk-x86/luci/ 2>/dev/null || true
+        
+        # FW4 + IPK aarch64
+        mkdir -p passwall-fw4-ipk-a53/depends passwall-fw4-ipk-a53/luci
+        if [ -f downloads/passwall_packages_ipk_aarch64_cortex-a53.zip ]; then
+          unzip -q downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall-fw4-ipk-a53/depends
+        fi
+        cp downloads/luci-app-passwall2*.ipk passwall-fw4-ipk-a53/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall-fw4-ipk-a53/luci/ 2>/dev/null || true
+        
+        # FW4 + APK x86_64
+        mkdir -p passwall-fw4-apk-x86/depends passwall-fw4-apk-x86/luci
+        if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
+          unzip -q downloads/passwall_packages_apk_x86_64.zip -d passwall-fw4-apk-x86/depends
+        fi
+        cp downloads/luci-app-passwall2*.apk passwall-fw4-apk-x86/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall-fw4-apk-x86/luci/ 2>/dev/null || true
+        
+        # FW4 + APK aarch64
+        mkdir -p passwall-fw4-apk-a53/depends passwall-fw4-apk-a53/luci
+        if [ -f downloads/passwall_packages_apk_aarch64_cortex-a53.zip ]; then
+          unzip -q downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall-fw4-apk-a53/depends
+        fi
+        cp downloads/luci-app-passwall2*.apk passwall-fw4-apk-a53/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall-fw4-apk-a53/luci/ 2>/dev/null || true
+        
+        echo "FW4 packages organized"
+
+    - name: Create install.sh scripts for FW3 (iptables)
+      shell: bash
+      run: |
+        # FW3 + IPK (OpenWrt)
+        cat <<'EOF' > passwall-fw3-ipk-x86/install.sh
         #!/bin/sh
-        # OpenWrt opkg 安装脚本
-        echo "Installing Passwall2 for OpenWrt..."
+        # Passwall2 FW3 (iptables) installer for OpenWrt x86_64
+        echo "Installing Passwall2 with FW3 (iptables) for OpenWrt x86_64..."
+        
         opkg update
         if [ $? -ne 0 ]; then
             echo "opkg update failed"
             exit 1
         fi
-        opkg install iptables-mod-tproxy iptables-mod-socket iptables-mod-iprange iptables-mod-conntrack-extra
-        opkg install depends/*.ipk
-        opkg install luci/*.ipk
-        echo "Passwall2 installation completed for OpenWrt"
+        
+        opkg install iptables iptables-zz-legacy \
+          iptables-mod-conntrack-extra iptables-mod-iprange \
+          iptables-mod-socket iptables-mod-tproxy kmod-ipt-nat \
+          ipset ipt2socks
+        
+        opkg install --force-depends depends/*.ipk
+        opkg install --force-depends luci/*.ipk
+        
+        echo "FW3 Passwall2 installation completed for OpenWrt"
         EOF
-        chmod +x passwall_x86_64_ipk/install.sh
-        cp passwall_x86_64_ipk/install.sh passwall_aarch64_ipk/install.sh
-
-        cat <<'EOF' > passwall_x86_64_apk/install.sh
+        chmod +x passwall-fw3-ipk-x86/install.sh
+        cp passwall-fw3-ipk-x86/install.sh passwall-fw3-ipk-a53/install.sh
+        
+        # FW3 + APK (Alpine Linux)
+        cat <<'EOF' > passwall-fw3-apk-x86/install.sh
         #!/bin/sh
-        # Alpine Linux apk 
-        echo "Installing Passwall2 for Alpine Linux..."
+        # Passwall2 FW3 (iptables) installer for Alpine Linux x86_64
+        echo "Installing Passwall2 with FW3 (iptables) for Alpine Linux x86_64..."
+        
         apk update
         if [ $? -ne 0 ]; then
             echo "apk update failed"
             exit 1
         fi
         
-        apk add iptables-mod-tproxy iptables-mod-socket iptables-mod-iprange iptables-mod-conntrack-extra
+        apk add iptables iptables-legacy \
+          iptables-mod-conntrack-extra iptables-mod-iprange \
+          iptables-mod-socket iptables-mod-tproxy \
+          ipset ipt2socks
         
         for pkg in depends/*.apk luci/*.apk; do
             if [ -f "$pkg" ]; then
@@ -166,21 +205,76 @@ runs:
             fi
         done
         
-        echo "Passwall2 installation completed for Alpine Linux (forced mode)"
+        echo "FW3 Passwall2 installation completed for Alpine Linux"
         EOF
-        chmod +x passwall_x86_64_apk/install.sh
-        cp passwall_x86_64_apk/install.sh passwall_aarch64_apk/install.sh
+        chmod +x passwall-fw3-apk-x86/install.sh
+        cp passwall-fw3-apk-x86/install.sh passwall-fw3-apk-a53/install.sh
         
-        echo "Install scripts created"
+        echo "FW3 install scripts created"
 
-    - name: Move passwall2 directories to makeself
+    - name: Create install.sh scripts for FW4 (nftables)
       shell: bash
       run: |
-        mkdir -p makeself
-        mv passwall_x86_64_ipk makeself/
-        mv passwall_aarch64_ipk makeself/
-        mv passwall_x86_64_apk makeself/
-        mv passwall_aarch64_apk makeself/
+        # FW4 + IPK (OpenWrt)
+        cat <<'EOF' > passwall-fw4-ipk-x86/install.sh
+        #!/bin/sh
+        # Passwall2 FW4 (nftables) installer for OpenWrt x86_64
+        echo "Installing Passwall2 with FW4 (nftables) for OpenWrt x86_64..."
+        
+        opkg update
+        if [ $? -ne 0 ]; then
+            echo "opkg update failed"
+            exit 1
+        fi
+        
+        opkg install nftables kmod-nft-socket \
+          kmod-nft-tproxy kmod-nft-nat \
+          ipt2socks
+        
+        opkg install --force-depends depends/*.ipk
+        opkg install --force-depends luci/*.ipk
+        
+        echo "FW4 Passwall2 installation completed for OpenWrt"
+        EOF
+        chmod +x passwall-fw4-ipk-x86/install.sh
+        cp passwall-fw4-ipk-x86/install.sh passwall-fw4-ipk-a53/install.sh
+        
+        # FW4 + APK (Alpine Linux)
+        cat <<'EOF' > passwall-fw4-apk-x86/install.sh
+        #!/bin/sh
+        # Passwall2 FW4 (nftables) installer for Alpine Linux x86_64
+        echo "Installing Passwall2 with FW4 (nftables) for Alpine Linux x86_64..."
+        
+        apk update
+        if [ $? -ne 0 ]; then
+            echo "apk update failed"
+            exit 1
+        fi
+        
+        apk add nftables kmod-nft-socket \
+          kmod-nft-tproxy kmod-nft-nat \
+          ipt2socks
+        
+        for pkg in depends/*.apk luci/*.apk; do
+            if [ -f "$pkg" ]; then
+                apk add --force --allow-untrusted "$pkg"
+            fi
+        done
+        
+        echo "FW4 Passwall2 installation completed for Alpine Linux"
+        EOF
+        chmod +x passwall-fw4-apk-x86/install.sh
+        cp passwall-fw4-apk-x86/install.sh passwall-fw4-apk-a53/install.sh
+        
+        echo "FW4 install scripts created"
+
+    - name: Move directories to makeself
+      shell: bash
+      run: |
+        mv passwall-fw3-ipk-x86 passwall-fw3-ipk-a53 \
+           passwall-fw3-apk-x86 passwall-fw3-apk-a53 \
+           passwall-fw4-ipk-x86 passwall-fw4-ipk-a53 \
+           passwall-fw4-apk-x86 passwall-fw4-apk-a53 makeself/
         echo "Directories moved to makeself/"
 
     - name: Create self-extracting packages
@@ -188,25 +282,46 @@ runs:
       run: |
         cd makeself
         
-        # 确保makeself脚本可执行
         chmod +x makeself.sh
         
-        # 创建IPK包
-        if [ -d "passwall_x86_64_ipk" ]; then
-          ./makeself.sh passwall_x86_64_ipk passwall2_x86_64_ipk_${{ env.LATEST_TAG }}.run "Passwall2 installer for OpenWrt x86_64" ./install.sh
+        if [ -d "passwall-fw3-ipk-x86" ]; then
+          ./makeself.sh passwall-fw3-ipk-x86 passwall2-fw3-ipk-x86_64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW3 (iptables) for OpenWrt x86_64" ./install.sh
         fi
         
-        if [ -d "passwall_aarch64_ipk" ]; then
-          ./makeself.sh passwall_aarch64_ipk passwall2_aarch64_a53_ipk_${{ env.LATEST_TAG }}.run "Passwall2 installer for OpenWrt aarch64" ./install.sh
+        if [ -d "passwall-fw3-ipk-a53" ]; then
+          ./makeself.sh passwall-fw3-ipk-a53 passwall2-fw3-ipk-aarch64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW3 (iptables) for OpenWrt aarch64" ./install.sh
         fi
         
-        # 创建APK包
-        if [ -d "passwall_x86_64_apk" ]; then
-          ./makeself.sh passwall_x86_64_apk passwall2_x86_64_apk_${{ env.LATEST_TAG }}.run "Passwall2 installer for Alpine Linux x86_64" ./install.sh
+        if [ -d "passwall-fw3-apk-x86" ]; then
+          ./makeself.sh passwall-fw3-apk-x86 passwall2-fw3-apk-x86_64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW3 (iptables) for Alpine x86_64" ./install.sh
         fi
         
-        if [ -d "passwall_aarch64_apk" ]; then
-          ./makeself.sh passwall_aarch64_apk passwall2_aarch64_a53_apk_${{ env.LATEST_TAG }}.run "Passwall2 installer for Alpine Linux aarch64" ./install.sh
+        if [ -d "passwall-fw3-apk-a53" ]; then
+          ./makeself.sh passwall-fw3-apk-a53 passwall2-fw3-apk-aarch64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW3 (iptables) for Alpine aarch64" ./install.sh
+        fi
+        
+        if [ -d "passwall-fw4-ipk-x86" ]; then
+          ./makeself.sh passwall-fw4-ipk-x86 passwall2-fw4-ipk-x86_64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW4 (nftables) for OpenWrt x86_64" ./install.sh
+        fi
+        
+        if [ -d "passwall-fw4-ipk-a53" ]; then
+          ./makeself.sh passwall-fw4-ipk-a53 passwall2-fw4-ipk-aarch64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW4 (nftables) for OpenWrt aarch64" ./install.sh
+        fi
+        
+        if [ -d "passwall-fw4-apk-x86" ]; then
+          ./makeself.sh passwall-fw4-apk-x86 passwall2-fw4-apk-x86_64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW4 (nftables) for Alpine x86_64" ./install.sh
+        fi
+        
+        if [ -d "passwall-fw4-apk-a53" ]; then
+          ./makeself.sh passwall-fw4-apk-a53 passwall2-fw4-apk-aarch64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW4 (nftables) for Alpine aarch64" ./install.sh
         fi
         
         echo "Self-extracting packages created:"
