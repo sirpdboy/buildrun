@@ -1,3 +1,8 @@
+# ======================================
+# https://github.com/sirpdboy/buildrun
+# Lisence: MIT
+# Author: sirpdboy
+# ======================================
 name: "Build SSR Plus run files"
 description: "Build SSR Plus (shadowsocksr-libev) run file with IPK (OpenWrt) and APK (Alpine) support"
 author: "sirpdboy"
@@ -17,8 +22,9 @@ runs:
     - name: Create necessary directories
       shell: bash
       run: |
-        mkdir -p ssr-ipk-x86/depends ssr-ipk-x86/main
-        mkdir -p ssr-ipk-a53/depends ssr-ipk-a53/main
+        # IPK 目录 (OpenWrt)
+        mkdir -p ssr-ipk-x86/depends ssr-ipk-x86/luci
+        mkdir -p ssr-ipk-a53/depends ssr-ipk-a53/luci
         
         mkdir -p makeself ${{ inputs.OUTPUT_DIR }}
         echo "All directories created"
@@ -58,7 +64,7 @@ runs:
           "dns2socks" "hysteria" "ipt2socks" "microsocks" "mosdns" "naiveproxy"
           "redsocks2" "shadowsocksr-libev" "shadowsocks-rust" "shadow-tls"
           "simple-obfs-client" "tcping" "trojan" "tuic-client" "v2ray-plugin"
-          "xray-core"
+          "xray-core" "luci-app-ssr-plus"
         )
         EXCLUDE_PREFIXES=(
           "luci-app-chinadns-ng" "luci-app-microsocks" "luci-app-mosdns"
@@ -138,25 +144,17 @@ runs:
         BASE_A53="https://dl.openwrt.ai/$PKG_VERSION/aarch64_cortex-a53/base/"
         download_deps "aarch64" "$BASE_A53" "ssr-ipk-a53/depends"
         
-        PKG_X86="https://dl.openwrt.ai/$PKG_VERSION/x86_64/packages/"
-        download_deps "x86_64" "$PKG_X86" "ssr-ipk-x86/depends"
-        
-        PKG_A53="https://dl.openwrt.ai/$PKG_VERSION/aarch64_cortex-a53/packages/"
-        download_deps "aarch64" "$PKG_A53" "ssr-ipk-a53/depends"
-        
-        cp ssr-ipk-x86/depends/* ssr-apk-x86/depends/ 2>/dev/null || true
-        cp ssr-ipk-a53/depends/* ssr-apk-a53/depends/ 2>/dev/null || true
+
+
         
         echo "Additional dependencies downloaded"
 
-    - name: Move SSR Plus main package
+    - name: Move SSR Plus luci package
       shell: bash
       run: |
-        mv ssr-ipk-x86/depends/luci-app-ssr-plus*.ipk ssr-ipk-x86/main/ 2>/dev/null || true
-        mv ssr-ipk-a53/depends/luci-app-ssr-plus*.ipk ssr-ipk-a53/main/ 2>/dev/null || true
-        
-        cp ssr-ipk-x86/main/* ssr-apk-x86/main/ 2>/dev/null || true
-        cp ssr-ipk-a53/main/* ssr-apk-a53/main/ 2>/dev/null || true
+        mv ssr-ipk-x86/depends/luci-app-ssr-plus*.ipk ssr-ipk-x86/luci/ 2>/dev/null || true
+        mv ssr-ipk-a53/depends/luci-app-ssr-plus*.ipk ssr-ipk-a53/luci/ 2>/dev/null || true
+
         
         rm -f ssr-ipk-x86/depends/luci-app-trojan-server* 2>/dev/null || true
         rm -f ssr-ipk-a53/depends/luci-app-trojan-server* 2>/dev/null || true
@@ -167,7 +165,7 @@ runs:
       id: extract_version
       shell: bash
       run: |
-        file=$(ls ssr-ipk-a53/main/luci-app-ssr-plus*.ipk 2>/dev/null | head -n1)
+        file=$(ls ssr-ipk-x86/luci/luci-app-ssr-plus*.ipk 2>/dev/null | head -n1)
         if [ -n "$file" ] && [ -f "$file" ]; then
           base=${file##*/}
           tmp=${base#*_}
@@ -186,12 +184,12 @@ runs:
         echo "=========================================="
         echo "IPK x86_64 depends:"
         ls -lh ssr-ipk-x86/depends/ | head -20
-        echo "IPK x86_64 main:"
-        ls -lh ssr-ipk-x86/main/
+        echo "IPK x86_64 luci:"
+        ls -lh ssr-ipk-x86/luci/
         echo "IPK aarch64 depends:"
         ls -lh ssr-ipk-a53/depends/ | head -20
-        echo "IPK aarch64 main:"
-        ls -lh ssr-ipk-a53/main/
+        echo "IPK aarch64 luci:"
+        ls -lh ssr-ipk-a53/luci/
         echo "=========================================="
 
     - name: Create install.sh scripts for IPK (OpenWrt)
@@ -213,8 +211,8 @@ runs:
         echo "[2/4] Installing dependencies..."
         opkg install depends/*.ipk --force-depends 2>/dev/null || true
         
-        echo "[3/4] Installing SSR Plus main package..."
-        opkg install main/*.ipk --force-depends
+        echo "[3/4] Installing SSR Plus luci package..."
+        opkg install luci/*.ipk --force-depends
         if [ $? -eq 0 ]; then
             echo "✓ SSR Plus installed successfully"
         else
@@ -255,7 +253,7 @@ runs:
       shell: bash
       run: |
         cd makeself
-        
+
         if [ -d "ssr-ipk-x86" ] && [ "$(ls -A ssr-ipk-x86)" ]; then
           ./makeself.sh ssr-ipk-x86/ ssr-plus-ipk-x86_64-${{ env.SSRP_VERSION }}.run \
             "SSR Plus installer for OpenWrt x86_64" ./install.sh
