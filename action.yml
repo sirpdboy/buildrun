@@ -49,8 +49,7 @@ runs:
     - name: Download latest Nikki files
       shell: bash
       run: |
-        rm -rf downloads
-        mkdir -p downloads && cd downloads
+        cd downloads 2>/dev/null || mkdir -p downloads && cd downloads
         
         RELEASE_INFO=$(curl -s https://api.github.com/repos/nikkinikki-org/OpenWrt-nikki/releases/latest)
         
@@ -66,51 +65,55 @@ runs:
           curl -L -f -o nikki_aarch64_cortex-a53-openwrt-24.10.tar.gz "$AARCH64_URL"
         fi
         
-        X86_URLAPK=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("nikki_x86_64-openwrt-25.12.*\\.tar\\.gz$")) | .browser_download_url')
-        if [ -n "$X86_URLAPK" ] && [ "$X86_URLAPK" != "null" ]; then
+        X86_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("nikki_x86_64-openwrt-25.12.*\\.tar\\.gz$")) | .browser_download_url')
+        if [ -n "$X86_URL" ] && [ "$X86_URL" != "null" ]; then
           echo "Downloading x86_64 package..."
-          curl -L -f -o nikki_x86_64-openwrt-25.12.gz "$X86_URLAPK"
+          curl -L -f -o nikki_x86_64-openwrt-25.12.gz "$X86_URL"
         fi
         
-        AARCH64_URLAPK=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("nikki_aarch64_cortex-a53-openwrt-25.12.*\\.tar\\.gz$")) | .browser_download_url')
-        if [ -n "$AARCH64_URLAPK" ] && [ "$AARCH64_URLAPK" != "null" ]; then
+        AARCH64_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("nikki_aarch64_cortex-a53-openwrt-25.12.*\\.tar\\.gz$")) | .browser_download_url')
+        if [ -n "$AARCH64_URL" ] && [ "$AARCH64_URL" != "null" ]; then
           echo "Downloading aarch64 package..."
-          curl -L -f -o nikki_aarch64_cortex-a53-openwrt-25.12.tar.gz "$AARCH64_URLAPK"
+          curl -L -f -o nikki_aarch64_cortex-a53-openwrt-25.12.tar.gz "$AARCH64_URL"
         fi
 
+        tar --one-top-level=nikki_aarch64_cortex-a53-openwrt-24.10 -xvzf nikki_aarch64_cortex-a53-openwrt-24.10.tar.gz
+        tar --one-top-level=nikki_x86_64-openwrt-24.10 -xvzf nikki_x86_64-openwrt-24.10.tar.gz
 
-        if [ -f "nikki_x86_64-openwrt-24.10.tar.gz" ]; then
-          tar -xzf nikki_x86_64-openwrt-24.10.tar.gz
-          echo "x86_64 package extracted"
-        fi
-        
-        if [ -f "nikki_aarch64_cortex-a53-openwrt-24.10.tar.gz" ]; then
-          tar -xzf nikki_aarch64_cortex-a53-openwrt-24.10.tar.gz
-          echo "aarch64 package extracted"
-        fi
-        if [ -f "nikki_x86_64-openwrt-25.12.tar.gz" ]; then
-          tar -xzf nikki_x86_64-openwrt-25.12.tar.gz
-          echo "x86_64 package extracted"
-        fi
-        
-        if [ -f "nikki_aarch64_cortex-a53-openwrt-25.12.tar.gz" ]; then
-          tar -xzf nikki_aarch64_cortex-a53-openwrt-25.12.tar.gz
-          echo "aarch64 package extracted"
-        fi
-     
+        tar --one-top-level=nikki_aarch64_cortex-a53-openwrt-25.12 -xvzf nikki_aarch64_cortex-a53-openwrt-25.12.tar.gz
+        tar --one-top-level=nikki_x86_64-openwrt-25.12 -xvzf nikki_x86_64-openwrt-25.12.tar.gz
         echo "Download completed"
         ls -la
 
     - name: Organize files for x86_64
       shell: bash
       run: |
-        X86_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_x86_64-openwrt-*" 2>/dev/null | head -1)
+        X86_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_x86_64-openwrt-24.10*" 2>/dev/null | head -1)
         
         if [ -n "$X86_DIR" ] && [ -d "$X86_DIR" ]; then
           cp "$X86_DIR"/*.ipk nikki-ipk-x86/ 2>/dev/null || true
+          for dir in nikki-ipk-x86; do
+            pushd "$dir" >/dev/null || continue
+            for file in *~*.ipk; do
+              [ -e "$file" ] || continue
+              new_file="$(echo "$file" | tr -d '~')"
+              if [ ! -e "$new_file" ]; then
+                mv "$file" "$new_file"
+                echo "Renamed: $file -> $new_file"
+              fi
+            done
+            popd >/dev/null
+          done
+          echo "x86_64 files organized"
+        else
+          echo "x86_64 directory not found"
+        fi
+        X86_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_x86_64-openwrt-25.12*" 2>/dev/null | head -1)
+        
+        if [ -n "$X86_DIR" ] && [ -d "$X86_DIR" ]; then
           cp "$X86_DIR"/*.apk nikki-apk-x86/ 2>/dev/null || true
           
-          for dir in nikki-ipk-x86 nikki-apk-x86; do
+          for dir in nikki-apk-x86; do
             pushd "$dir" >/dev/null || continue
             for file in *~*.ipk; do
               [ -e "$file" ] || continue
@@ -130,13 +133,12 @@ runs:
     - name: Organize files for aarch64
       shell: bash
       run: |
-        AARCH64_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_aarch64_cortex-a53-openwrt-*" 2>/dev/null | head -1)
+        AARCH64_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_aarch64_cortex-a53-openwrt-24.10*" 2>/dev/null | head -1)
         
         if [ -n "$AARCH64_DIR" ] && [ -d "$AARCH64_DIR" ]; then
           cp "$AARCH64_DIR"/*.ipk nikki-ipk-a53/ 2>/dev/null || true
-          cp "$AARCH64_DIR"/*.apk nikki-apk-a53/ 2>/dev/null || true
           
-          for dir in nikki-ipk-a53 nikki-apk-a53; do
+          for dir in nikki-ipk-a53; do
             pushd "$dir" >/dev/null || continue
             for file in *~*.ipk; do
               [ -e "$file" ] || continue
@@ -152,7 +154,27 @@ runs:
         else
           echo "aarch64 directory not found"
         fi
-
+        AARCH64_DIR=$(find downloads -maxdepth 1 -type d -name "nikki_aarch64_cortex-a53-openwrt-25.12*" 2>/dev/null | head -1)
+        
+        if [ -n "$AARCH64_DIR" ] && [ -d "$AARCH64_DIR" ]; then
+          cp "$AARCH64_DIR"/*.apk nikki-apk-a53/ 2>/dev/null || true
+          
+          for dir in nikki-apk-a53; do
+            pushd "$dir" >/dev/null || continue
+            for file in *~*.ipk; do
+              [ -e "$file" ] || continue
+              new_file="$(echo "$file" | tr -d '~')"
+              if [ ! -e "$new_file" ]; then
+                mv "$file" "$new_file"
+                echo "Renamed: $file -> $new_file"
+              fi
+            done
+            popd >/dev/null
+          done
+          echo "aarch64 files organized"
+        else
+          echo "aarch64 directory not found"
+        fi
     - name: Create install.sh scripts for IPK (OpenWrt)
       shell: bash
       run: |
@@ -170,8 +192,7 @@ runs:
         fi
         
         echo "[2/3] Installing Nikki package..."
-        opkg install --force-depends --force-overwrite nikki*.ipk
-        opkg install --force-depends --force-overwrite luci*.ipk
+        opkg install --force-depends --force-overwrite *.ipk
         if [ $? -eq 0 ]; then
             echo "✓ Nikki installed successfully"
         else
@@ -205,16 +226,16 @@ runs:
         fi
         
         echo "[2/3] Installing Nikki package..."
-        for pkg in nikki*.apk; do
+        for pkg in *.apk; do
             if [ -f "$pkg" ]; then
                 apk add --force --allow-untrusted "$pkg"
             fi
         done
-        for pkg in luci*.apk; do
-            if [ -f "$pkg" ]; then
-                apk add --force --allow-untrusted "$pkg"
-            fi
-        done
+        
+        if [ -f *.ipk ] && [ ! -f *.apk ]; then
+            echo "No APK files found, trying IPK with opkg..."
+            opkg install --force-depends *.ipk 2>/dev/null || true
+        fi
         
         echo "[3/3] Installation completed"
         echo "=========================================="
