@@ -44,7 +44,6 @@ runs:
         mkdir -p downloads
         cd downloads
         
-        # 定义要下载的固定包列表
         PACKAGES=(
           "passwall_packages_ipk_x86_64.zip"
           "passwall_packages_apk_x86_64.zip"
@@ -57,13 +56,24 @@ runs:
           curl -L -o "$pkg" \
             "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/$pkg" || echo "Warning: Failed to download $pkg" || true
         done
-
+ 
+        echo "Fetching release info..."
         RELEASE_INFO=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest)
     
-        curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest | \
-        jq -r '.assets[] | select(.name | test("luci.*\\.(ipk|apk)$") | .browser_download_url' | \
-        while read -r url; do
-        [ -n "$url" ] && [ "$url" != "null" ] && curl -L -f -o "$(basename "$url")" "$url" || true
+        echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("luci.*\\.(ipk|apk)$")) | .browser_download_url' | \
+        while IFS= read -r url; do
+        if [[ -z "$url" || "$url" == "null" || ! "$url" =~ ^https?:// ]]; then
+        echo "Skipping invalid URL: $url"
+        continue
+        fi
+      
+        filename=$(basename "$url")
+        echo "Downloading: $filename from $url"
+        if curl -L -f -o "$filename" "$url"; then
+        echo "Successfully downloaded: $filename"
+        else
+        echo "Failed to download: $filename"
+        fi
         done
            
         echo "Downloaded files in downloads directory:"
@@ -138,10 +148,9 @@ runs:
         chmod +x passwall_x86_64_ipk/install.sh
         cp passwall_x86_64_ipk/install.sh passwall_aarch64_ipk/install.sh
 
-        # APK 安装脚本（Alpine Linux）- 强制安装，不校验签名
         cat <<'EOF' > passwall_x86_64_apk/install.sh
         #!/bin/sh
-        # Alpine Linux apk 安装脚本 - 强制安装模式
+        # Alpine Linux apk 
         echo "Installing Passwall2 for Alpine Linux..."
         apk update
         if [ $? -ne 0 ]; then
@@ -149,7 +158,6 @@ runs:
             exit 1
         fi
         
-        # 安装依赖包
         apk add iptables-mod-tproxy iptables-mod-socket iptables-mod-iprange iptables-mod-conntrack-extra
         
         for pkg in depends/*.apk luci/*.apk; do
