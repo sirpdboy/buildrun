@@ -35,6 +35,7 @@ runs:
       shell: bash
       run: |
         if [ ! -d "makeself" ]; then
+          rm -rf makeself
           git clone https://github.com/megastep/makeself.git
         fi
 
