@@ -41,6 +41,7 @@ runs:
     - name: Create directory structure for FW3 and FW4
       shell: bash
       run: |
+        rm -rf passwall*
         mkdir -p passwall-fw3-ipk-x86 passwall-fw3-ipk-a53
         mkdir -p passwall-fw3-apk-x86 passwall-fw3-apk-a53
         
