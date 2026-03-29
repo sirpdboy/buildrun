@@ -1,5 +1,12 @@
+## 访问数：![hello](https://views.whatilearened.today/views/github/sirpdboy/deplives.svg)[![](https://img.shields.io/badge/TG群-点击加入-FFFFFF.svg)](https://t.me/joinchat/AAAAAEpRF88NfOK5vBXGBQ)
 
-# 🚀 自动构建 应用商店（store) IPK/APK RUN文件安装包集合
+<p align="center">
+  <a href="https://openwrt.org"><img alt="OpenWrt" src="https://img.shields.io/badge/OpenWrt-%E2%89%A524.10-00B5E2?logo=openwrt&logoColor=white"></a>
+  <a href="https://www.google.com/chrome/"><img alt="Chrome" src="https://img.shields.io/badge/Chrome-%E2%89%A5111-4285F4?logo=googlechrome&logoColor=white"></a>
+  <a href="https://www.apple.com/safari/"><img alt="Safari" src="https://img.shields.io/badge/Safari-%E2%89%A516.4-000000?logo=safari&logoColor=white"></a>
+  <a href="https://www.mozilla.org/firefox/"><img alt="Firefox" src="https://img.shields.io/badge/Firefox-%E2%89%A5128-FF7139?logo=firefoxbrowser&logoColor=white"></a>
+  
+# 🚀 自动构建 应用商店（store) IPK/APK RUN文件安装包
 
 【[ENGLISH](https://github.com/sirpdboy/buildrun/edit/main/readme_en.md)】
 
@@ -13,7 +20,7 @@
 
 [构建下载] 👇🏻 
 
-https://github.com/siropboy/CloudBuildRun/releases
+[https://github.com/siropboy/CloudBuildRun/releases](https://github.com/siropboy/CloudBuildRun/releases)
 
 ## 📥 安装说明
 
@@ -110,7 +117,7 @@ chmod +x *.run
 
 ---
 
-### 3. Nikki (4 个文件)
+### 3. Nikki -FW4 (4 个文件)
 
 | 格式 | 架构 | 文件名示例 |
 |------|------|------------|
@@ -121,7 +128,7 @@ chmod +x *.run
 
 ---
 
-### 4. SSR Plus (2 个文件)
+### 4. SSR Plus FW3/FW4 (2 个文件)
 
 | 格式 | 架构 | 文件名示例 |
 |------|------|------------|
