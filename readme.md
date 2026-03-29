@@ -21,15 +21,11 @@
 
 ## 📥 安装说明
 
-### 一、下载run文件
-#### 目前多数情况是FW4的IPK文件，如果是25.12的APK就是FW4的APK文件。
-<img width="917" height="824" alt="image" src="https://github.com/user-attachments/assets/3c2083d8-93df-4e0b-a20e-a442b60b6779" />
-
-### 二、 应用商店 RUN文件安装方法
+### 一、 应用商店 RUN文件安装方法
 <img width="1050" height="671" alt="image" src="https://github.com/user-attachments/assets/c74e5c00-c0d9-4c06-bf2d-a66d5124d80f" />
 
 
-### 三、 通用安装方法
+### 二、 通用安装方法
 
 所有 `.run` 文件都是自解压安装包，使用方法如下：
 
@@ -41,7 +37,7 @@ chmod +x *.run
 ./文件名.run
 ```
 
-###  根据系统选择正确的安装包
+### 三、 根据系统选择正确的安装包
 
 #### 1、🔹 OpenWrt 24.10 系统 (使用 opkg)
 
