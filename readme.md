@@ -1,11 +1,8 @@
 ## 访问数：![hello](https://views.whatilearened.today/views/github/sirpdboy/deplives.svg)[![](https://img.shields.io/badge/TG群-点击加入-FFFFFF.svg)](https://t.me/joinchat/AAAAAEpRF88NfOK5vBXGBQ)
 
 <p align="center">
-  <a href="https://openwrt.org"><img alt="OpenWrt" src="https://img.shields.io/badge/OpenWrt-%E2%89%A524.10-00B5E2?logo=openwrt&logoColor=white"></a>
-  <a href="https://www.google.com/chrome/"><img alt="Chrome" src="https://img.shields.io/badge/Chrome-%E2%89%A5111-4285F4?logo=googlechrome&logoColor=white"></a>
-  <a href="https://www.apple.com/safari/"><img alt="Safari" src="https://img.shields.io/badge/Safari-%E2%89%A516.4-000000?logo=safari&logoColor=white"></a>
-  <a href="https://www.mozilla.org/firefox/"><img alt="Firefox" src="https://img.shields.io/badge/Firefox-%E2%89%A5128-FF7139?logo=firefoxbrowser&logoColor=white"></a>
-  
+<img alt="Github" src="https://img.shields.io/badge/Github-PASSWALL.RUN-green?logo=Github&logoColor=white">   <img alt="Github" src="https://img.shields.io/badge/Github-PASSWALL2.RUN-green?logo=Github&logoColor=white">   <img alt="Github" src="https://img.shields.io/badge/Github-OPENCLASH.RUN-green?logo=Github&logoColor=white">   <img alt="Github" src="https://img.shields.io/badge/Github-NIKKI.RUN-green?logo=Github&logoColor=white">   <img alt="Github" src="https://img.shields.io/badge/Github-SSR.RUN-green?logo=Github&logoColor=white">
+
 # 🚀 自动构建 应用商店（store) IPK/APK RUN文件安装包
 
 【[ENGLISH](https://github.com/sirpdboy/buildrun/edit/main/readme_en.md)】
@@ -18,18 +15,21 @@
 
 ## 📥 RUN安装文件下载
 
-[构建下载] 👇🏻 
+[构建下载] 👇🏻   [进入讨论区](https://github.com/sirpdboy/buildrun/discussions/1)
 
 [https://github.com/siropboy/CloudBuildRun/releases](https://github.com/siropboy/CloudBuildRun/releases)
 
 ## 📥 安装说明
 
-## 1. run文件安装方法
-## Install by iStore 
+### 一、下载run文件
+#### 目前多数情况是FW4的IPK文件，如果是25.12的APK就是FW4的APK文件。
+<img width="917" height="824" alt="image" src="https://github.com/user-attachments/assets/3c2083d8-93df-4e0b-a20e-a442b60b6779" />
 
-在应用商店 ，手动上传安装run文件 
+### 二、 应用商店 RUN文件安装方法
+<img width="1050" height="671" alt="image" src="https://github.com/user-attachments/assets/c74e5c00-c0d9-4c06-bf2d-a66d5124d80f" />
 
-### 2. 通用安装方法
+
+### 三、 通用安装方法
 
 所有 `.run` 文件都是自解压安装包，使用方法如下：
 
@@ -41,9 +41,9 @@ chmod +x *.run
 ./文件名.run
 ```
 
-### 3. 根据系统选择正确的安装包
+###  根据系统选择正确的安装包
 
-#### 🔹 OpenWrt 24.10 系统 (使用 opkg)
+#### 1、🔹 OpenWrt 24.10 系统 (使用 opkg)
 
 请选择文件名中包含 `ipk` 的安装包：
 
@@ -54,7 +54,7 @@ chmod +x *.run
 ./passwall-fw3-ipk-aarch64-*.run
 ```
 
-#### 🔹 Alpine 25.12 系统 (使用 apk)
+#### 2、🔹 Alpine 25.12 系统 (使用 apk)
 
 请选择文件名中包含 `apk` 的安装包：
 
@@ -242,7 +242,7 @@ opkg remove luci-app-ssr-plus
 <details>
 <summary><h2>鸣谢和引用的项目</h2></summary>
   
- 【打包】https://github.com/megastep/makeself
+ 【打包】https://github.com/megastep/makeself<br>
  【引用】https://github.com/Openwrt-Passwall/openwrt-passwall<br>
  【引用】https://github.com/Openwrt-Passwall/openwrt-passwall2<br>
  【引用】https://github.com/vernesong/OpenClash<br>
