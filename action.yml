@@ -43,11 +43,11 @@ runs:
       shell: bash
       run: |
         rm -rf passwall*
-        mkdir -p passwall2-fw3-ipk-x86 passwall2-fw3-ipk-a53
-        mkdir -p passwall2-fw3-apk-x86 passwall2-fw3-apk-a53
+        mkdir -p passwall2-fw3-ipk-x86 passwall2-fw3-ipk-a53 passwall2-fw3-ipk-mipsel_24kc
+        mkdir -p passwall2-fw4-ipk-x86 passwall2-fw4-ipk-a53 passwall2-fw4-ipk-mipsel_24kc
         
-        mkdir -p passwall2-fw4-ipk-x86 passwall2-fw4-ipk-a53
-        mkdir -p passwall2-fw4-apk-x86 passwall2-fw4-apk-a53
+        mkdir -p passwall2-fw3-apk-x86 passwall2-fw3-apk-a53 passwall2-fw3-apk-mipsel_24kc
+        mkdir -p passwall2-fw4-apk-x86 passwall2-fw4-apk-a53 passwall2-fw4-apk-mipsel_24kc
         
         mkdir -p downloads
         echo "Directory structure created"
@@ -62,6 +62,9 @@ runs:
           "passwall_packages_apk_x86_64.zip"
           "passwall_packages_ipk_aarch64_cortex-a53.zip"
           "passwall_packages_apk_aarch64_cortex-a53.zip"
+          "passwall_packages_ipk_mipsel_24kc.zip"
+          "passwall_packages_apk_mipsel_24kc.zip"
+          
         )
         
         for pkg in "${PACKAGES[@]}"; do
@@ -101,6 +104,15 @@ runs:
         cp downloads/luci-app-passwall2*.ipk passwall2-fw3-ipk-a53/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw3-ipk-a53/luci/ 2>/dev/null || true
         
+        
+        # FW3 + IPK mipsel_24kc
+        mkdir -p passwall2-fw3-ipk-mipsel_24kc/depends passwall2-fw3-ipk-mipsel_24kc/luci
+        if [ -f downloads/passwall_packages_ipk_mipsel_24kc.zip ]; then
+          unzip -q downloads/passwall_packages_ipk_mipsel_24kc.zip -d passwall2-fw3-ipk-mipsel_24kc/depends
+        fi
+        cp downloads/luci-app-passwall2*.ipk passwall2-fw3-ipk-mipsel_24kc/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw3-ipk-mipsel_24kc/luci/ 2>/dev/null || true
+        
         # FW3 + APK x86_64
         mkdir -p passwall2-fw3-apk-x86/depends passwall2-fw3-apk-x86/luci
         if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
@@ -116,6 +128,14 @@ runs:
         fi
         cp downloads/luci-app-passwall2*.apk passwall2-fw3-apk-a53/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw3-apk-a53/luci/ 2>/dev/null || true
+        
+        # FW3 + APK mipsel_24kc
+        mkdir -p passwall2-fw3-apk-mipsel_24kc/depends passwall2-fw3-apk-mipsel_24kc/luci
+        if [ -f downloads/passwall_packages_apk_mipsel_24kc.zip ]; then
+          unzip -q downloads/passwall_packages_apk_mipsel_24kc.zip -d passwall2-fw3-apk-mipsel_24kc/depends
+        fi
+        cp downloads/luci-app-passwall2*.apk passwall2-fw3-apk-mipsel_24kc/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw3-apk-mipsel_24kc/luci/ 2>/dev/null || true
         
         echo "FW3 packages organized"
 
@@ -138,6 +158,14 @@ runs:
         cp downloads/luci-app-passwall2*.ipk passwall2-fw4-ipk-a53/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw4-ipk-a53/luci/ 2>/dev/null || true
         
+        # FW4 + IPK mipsel_24kc
+        mkdir -p passwall2-fw4-ipk-mipsel_24kc/depends passwall2-fw4-ipk-mipsel_24kc/luci
+        if [ -f downloads/passwall_packages_ipk_mipsel_24kc.zip ]; then
+          unzip -q downloads/passwall_packages_ipk_mipsel_24kc -d passwall2-fw4-ipk-mipsel_24kc/depends
+        fi
+        cp downloads/luci-app-passwall2*.ipk passwall2-fw4-ipk-mipsel_24kc/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw4-ipk-mipsel_24kc/luci/ 2>/dev/null || true
+        
         # FW4 + APK x86_64
         mkdir -p passwall2-fw4-apk-x86/depends passwall2-fw4-apk-x86/luci
         if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
@@ -153,6 +181,14 @@ runs:
         fi
         cp downloads/luci-app-passwall2*.apk passwall2-fw4-apk-a53/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw4-apk-a53/luci/ 2>/dev/null || true
+        
+        # FW4 + APK mipsel_24kc
+        mkdir -p passwall2-fw4-apk-mipsel_24kc/depends passwall2-fw4-apk-mipsel_24kc/luci
+        if [ -f downloads/passwall_packages_apk_mipsel_24kc.zip ]; then
+          unzip -q downloads/passwall_packages_apk_mipsel_24kczip -d passwall2-fw4-apk-mipsel_24kc/depends
+        fi
+        cp downloads/luci-app-passwall2*.apk passwall2-fw4-apk-mipsel_24kc/luci/ 2>/dev/null || true
+        cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw4-apk-mipsel_24kc/luci/ 2>/dev/null || true
         
         echo "FW4 packages organized"
 
@@ -210,7 +246,7 @@ runs:
         echo "FW3 Passwall2 installation completed for Alpine Linux"
         EOF
         chmod +x passwall2-fw3-apk-x86/install.sh
-        cp passwall2-fw3-apk-x86/install.sh passwall2-fw3-apk-a53/install.sh
+        cp passwall2-fw3-apk-x86/install.sh passwall2-fw3-apk-a53/install.sh   passwall2-fw3-apk-mipsel_24kc/install.sh  
         
         echo "FW3 install scripts created"
 
@@ -266,7 +302,7 @@ runs:
         echo "FW4 Passwall2 installation completed for Alpine Linux"
         EOF
         chmod +x passwall2-fw4-apk-x86/install.sh
-        cp passwall2-fw4-apk-x86/install.sh passwall2-fw4-apk-a53/install.sh
+        cp passwall2-fw4-apk-x86/install.sh passwall2-fw4-apk-a53/install.sh  passwall2-fw4-apk-mipsel_24kc/install.sh  
         
         echo "FW4 install scripts created"
 
@@ -275,6 +311,8 @@ runs:
       run: |
         mv passwall2-fw3-ipk-x86 passwall2-fw3-ipk-a53 \
            passwall2-fw3-apk-x86 passwall2-fw3-apk-a53 \
+           passwall2-fw3-ipk-mipsel_24kc passwall2-fw3-apk-mipsel_24kc \
+           passwall2-fw4-ipk-mipsel_24kc passwall2-fw4-apk-mipsel_24kc \
            passwall2-fw4-ipk-x86 passwall2-fw4-ipk-a53 \
            passwall2-fw4-apk-x86 passwall2-fw4-apk-a53 makeself/
         echo "Directories moved to makeself/"
@@ -291,41 +329,60 @@ runs:
             "Passwall2 FW3 (iptables) for OpenWrt x86_64" ./install.sh
         fi
         
-        if [ -d "passwall2-fw3-ipk-a53" ]; then
-          ./makeself.sh passwall2-fw3-ipk-a53 passwall2-fw3-ipk-aarch64-${{ env.LATEST_TAG }}.run \
-            "Passwall2 FW3 (iptables) for OpenWrt aarch64" ./install.sh
-        fi
-        
         if [ -d "passwall2-fw3-apk-x86" ]; then
           ./makeself.sh passwall2-fw3-apk-x86 passwall2-fw3-apk-x86_64-${{ env.LATEST_TAG }}.run \
             "Passwall2 FW3 (iptables) for Alpine x86_64" ./install.sh
+        fi
+        
+        
+        if [ -d "passwall2-fw4-ipk-x86" ]; then
+          ./makeself.sh passwall2-fw4-ipk-x86 passwall2-fw4-ipk-x86_64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW4 (nftables) for OpenWrt x86_64" ./install.sh
+        fi
+                
+        if [ -d "passwall2-fw4-apk-x86" ]; then
+          ./makeself.sh passwall2-fw4-apk-x86 passwall2-fw4-apk-x86_64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW4 (nftables) for Alpine x86_64" ./install.sh
+        fi
+        
+        if [ -d "passwall2-fw3-ipk-a53" ]; then
+          ./makeself.sh passwall2-fw3-ipk-a53 passwall2-fw3-ipk-aarch64-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW3 (iptables) for OpenWrt aarch64" ./install.sh
         fi
         
         if [ -d "passwall2-fw3-apk-a53" ]; then
           ./makeself.sh passwall2-fw3-apk-a53 passwall2-fw3-apk-aarch64-${{ env.LATEST_TAG }}.run \
             "Passwall2 FW3 (iptables) for Alpine aarch64" ./install.sh
         fi
-        
-        if [ -d "passwall2-fw4-ipk-x86" ]; then
-          ./makeself.sh passwall2-fw4-ipk-x86 passwall2-fw4-ipk-x86_64-${{ env.LATEST_TAG }}.run \
-            "Passwall2 FW4 (nftables) for OpenWrt x86_64" ./install.sh
-        fi
-        
         if [ -d "passwall2-fw4-ipk-a53" ]; then
           ./makeself.sh passwall2-fw4-ipk-a53 passwall2-fw4-ipk-aarch64-${{ env.LATEST_TAG }}.run \
             "Passwall2 FW4 (nftables) for OpenWrt aarch64" ./install.sh
         fi
-        
-        if [ -d "passwall2-fw4-apk-x86" ]; then
-          ./makeself.sh passwall2-fw4-apk-x86 passwall2-fw4-apk-x86_64-${{ env.LATEST_TAG }}.run \
-            "Passwall2 FW4 (nftables) for Alpine x86_64" ./install.sh
-        fi
-        
+
         if [ -d "passwall2-fw4-apk-a53" ]; then
           ./makeself.sh passwall2-fw4-apk-a53 passwall2-fw4-apk-aarch64-${{ env.LATEST_TAG }}.run \
             "Passwall2 FW4 (nftables) for Alpine aarch64" ./install.sh
         fi
         
+        # mipsel_24kc
+        if [ -d "passwall2-fw3-ipk-mipsel_24kc" ]; then
+          ./makeself.sh passwall2-fw3-ipk-mipsel_24kc passwall2-fw3-ipk-mipsel_24kc-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW3 (iptables) for OpenWrt mipsel_24kc" ./install.sh
+        fi
+        
+        if [ -d "passwall2-fw3-apk-mipsel_24kc" ]; then
+          ./makeself.sh passwall2-fw3-apk-mipsel_24kc passwall2-fw3-apk-mipsel_24kc-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW3 (iptables) for Alpine mipsel_24kc" ./install.sh
+        fi
+        if [ -d "passwall2-fw4-ipk-mipsel_24kc" ]; then
+          ./makeself.sh passwall2-fw4-ipk-mipsel_24kc passwall2-fw4-ipk-mipsel_24kc-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW4 (nftables) for OpenWrt mipsel_24kc" ./install.sh
+        fi
+
+        if [ -d "passwall2-fw4-apk-mipsel_24kc" ]; then
+          ./makeself.sh passwall2-fw4-apk-mipsel_24kc passwall2-fw4-apk-mipsel_24kc-${{ env.LATEST_TAG }}.run \
+            "Passwall2 FW4 (nftables) for Alpine mipsel_24kc" ./install.sh
+        fi
         echo "Self-extracting packages created:"
         ls -lh *.run
 
