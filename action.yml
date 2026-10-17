@@ -19,6 +19,10 @@ runs:
       run: |
         mkdir -p ssr-ipk-x86/depends ssr-ipk-x86/luci
         mkdir -p ssr-ipk-a53/depends ssr-ipk-a53/luci
+        mkdir -p ssr-ipk-mipsel_24kc/depends ssr-ipk-mipsel_24kc/luci
+        mkdir -p ssr-apk-x86/depends ssr-apk-x86/luci
+        mkdir -p ssr-apk-a53/depends ssr-apk-a53/luci
+        mkdir -p ssr-apk-mipsel_24kc/depends ssr-apk-mipsel_24kc/luci
         
         mkdir -p makeself ${{ inputs.OUTPUT_DIR }}
         echo "All directories created"
@@ -27,7 +31,7 @@ runs:
       id: set_version
       shell: bash
       run: |
-        PKG_VERSION="packages-24.10"
+        PKG_VERSION="packages-25.12"
         echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_ENV
         echo "Package version: $PKG_VERSION"
 
@@ -43,6 +47,11 @@ runs:
         curl -L -f -o ssr-ipk-a53/depends/libopenssl3.ipk \
           "https://dl.openwrt.ai/packages-24.10/aarch64_cortex-a53/base/libopenssl-legacy_3.0.18-r1_aarch64_cortex-a53.ipk" || true
         cp ssr-ipk-a53/depends/libopenssl3.ipk ssr-apk-a53/depends/ 2>/dev/null || true
+        
+   
+        curl -L -f -o ssr-ipk-mipsel_24kc/depends/libopenssl3.ipk \
+          "https://dl.openwrt.ai/packages-24.10/mipsel_24kc/base/libopenssl-legacy_3.0.18-r1_mipsel_24kc.ipk" || true
+        cp ssr-ipk-mipsel/depends/libopenssl3.ipk ssr-apk-mipsel_24kc/depends/ 2>/dev/null || true
         
         echo "libopenssl3 downloaded"
 
@@ -100,6 +109,10 @@ runs:
         BASE_URL_A53="https://dl.openwrt.ai/$PKG_VERSION/aarch64_cortex-a53/kiddin9/"
         download_packages "aarch64" "$BASE_URL_A53" "ssr-ipk-a53/depends"
         
+        
+        BASE_URL_A53="https://dl.openwrt.ai/$PKG_VERSION/mipsel_24kc/kiddin9/"
+        download_packages "mipsel_24kc" "$BASE_URL_A53" "ssr-ipk-mipsel_24kc/depends"
+        
         echo "Package download completed"
 
     - name: Download additional dependencies (libopenssl3, libudns)
@@ -137,6 +150,9 @@ runs:
         download_deps "aarch64" "$BASE_A53" "ssr-ipk-a53/depends"
         
 
+        BASE_mipsel_24kc="https://dl.openwrt.ai/$PKG_VERSION/mipsel_24kc/base/"
+        download_deps "mipsel_24kc" "$BASE_mipsel_24kc" "ssr-ipk-mipsel_24kc/depends"
+        
 
         
         echo "Additional dependencies downloaded"
@@ -146,10 +162,12 @@ runs:
       run: |
         mv ssr-ipk-x86/depends/luci-app-ssr-plus*.ipk ssr-ipk-x86/luci/ 2>/dev/null || true
         mv ssr-ipk-a53/depends/luci-app-ssr-plus*.ipk ssr-ipk-a53/luci/ 2>/dev/null || true
+        mv ssr-ipk-mipsel_24kc/depends/luci-app-ssr-plus*.ipk ssr-ipk-mipsel_24kc/luci/ 2>/dev/null || true
 
         
         rm -f ssr-ipk-x86/depends/luci-app-trojan-server* 2>/dev/null || true
         rm -f ssr-ipk-a53/depends/luci-app-trojan-server* 2>/dev/null || true
+        rm -f ssr-ipk-mipsel_24kc/depends/luci-app-trojan-server* 2>/dev/null || true
         
         echo "Main package moved"
 
@@ -182,6 +200,10 @@ runs:
         ls -lh ssr-ipk-a53/depends/ | head -20
         echo "IPK aarch64 luci:"
         ls -lh ssr-ipk-a53/luci/
+        echo "IPK mipsel_24kc depends:"
+        ls -lh ssr-ipk-mipsel_24kc/depends/ | head -20
+        echo "IPK mipsel_24kc luci:"
+        ls -lh ssr-ipk-mipsel_24kc/luci/
         echo "=========================================="
 
     - name: Create install.sh scripts for IPK (OpenWrt)
@@ -217,7 +239,7 @@ runs:
         echo "Please visit Luci -> Services -> SSR Plus to configure"
         EOF
         chmod +x ssr-ipk-x86/install.sh
-        cp ssr-ipk-x86/install.sh ssr-ipk-a53/install.sh
+        cp ssr-ipk-x86/install.sh ssr-ipk-a53/install.sh  ssr-ipk-mipsel_24kc/install.sh
         echo "IPK install scripts created"
 
 
@@ -232,7 +254,7 @@ runs:
     - name: Move directories to makeself
       shell: bash
       run: |
-        for dir in ssr-ipk-x86 ssr-ipk-a53; do
+        for dir in ssr-ipk-x86 ssr-ipk-a53 ssr-ipk-mipsel_24kc; do
           if [ -d "$dir" ] && [ "$(ls -A "$dir" 2>/dev/null)" ]; then
             mv "$dir" makeself/
             echo "Moved $dir to makeself/"
@@ -256,6 +278,11 @@ runs:
           ./makeself.sh ssr-ipk-a53/ ssr-plus-ipk-aarch64-${{ env.SSRP_VERSION }}.run \
             "SSR Plus installer for OpenWrt aarch64" ./install.sh
           echo "Created: ssr-plus-ipk-aarch64-${{ env.SSRP_VERSION }}.run"
+        fi        
+        if [ -d "ssr-ipk-mipsel_24kc" ] && [ "$(ls -A ssr-ipk-mipsel_24kc)" ]; then
+          ./makeself.sh ssr-ipk-mipsel_24kc/ ssr-plus-ipk-mipsel_24kc-${{ env.SSRP_VERSION }}.run \
+            "SSR Plus installer for OpenWrt aarch64" ./install.sh
+          echo "Created: ssr-plus-ipk-mipsel_24kc-${{ env.SSRP_VERSION }}.run"
         fi
 
         
