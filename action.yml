@@ -23,13 +23,13 @@ runs:
       shell: bash
       run: |
         # FW3 (iptables) + IPK (OpenWrt)
-        mkdir -p openclash-fw3-ipk-x86 openclash-fw3-ipk-a53
+        mkdir -p openclash-fw3-ipk-x86 openclash-fw3-ipk-a53 openclash-fw3-ipk-mipsel_24kc
         # FW3 (iptables) + APK (Alpine)
-        mkdir -p openclash-fw3-apk-x86 openclash-fw3-apk-a53
+        mkdir -p openclash-fw3-apk-x86 openclash-fw3-apk-a53 openclash-fw3-apk-mipsel_24kc
         # FW4 (nftables) + IPK (OpenWrt)
-        mkdir -p openclash-fw4-ipk-x86 openclash-fw4-ipk-a53
+        mkdir -p openclash-fw4-ipk-x86 openclash-fw4-ipk-a53 openclash-fw4-ipk-mipsel_24kc
         # FW4 (nftables) + APK (Alpine)
-        mkdir -p openclash-fw4-apk-x86 openclash-fw4-apk-a53
+        mkdir -p openclash-fw4-apk-x86 openclash-fw4-apk-a53 openclash-fw4-apk-mipsel_24kc
         
         mkdir -p OpenClash Meta makeself ${{ inputs.OUTPUT_DIR }}
         echo "All directories created"
@@ -45,14 +45,14 @@ runs:
       shell: bash
       run: |
         if [ -d "OpenClash/master" ]; then
-          for dir in openclash-fw3-ipk-x86 openclash-fw3-ipk-a53 \
-                      openclash-fw4-ipk-x86 openclash-fw4-ipk-a53; do
+          for dir in openclash-fw3-ipk-x86 openclash-fw3-ipk-a53  openclash-fw3-ipk-mipsel_24kc\
+                      openclash-fw4-ipk-x86 openclash-fw4-ipk-a53 openclash-fw4-ipk-mipsel_24kc; do
             cp OpenClash/master/*.ipk $dir/ 2>/dev/null || echo "No IPK files for $dir"
           done
           
-          for dir in openclash-fw3-apk-x86 openclash-fw3-apk-a53 \
-                      openclash-fw4-apk-x86 openclash-fw4-apk-a53; do
-            cp OpenClash/master/*.ipk $dir/ 2>/dev/null || true
+          for dir in openclash-fw3-apk-x86 openclash-fw3-apk-a53  openclash-fw3-apk-mipsel_24kc \
+                      openclash-fw4-apk-x86 openclash-fw4-apk-a53 openclash-fw4-apk-mipsel_24kc;  do
+            cp OpenClash/master/*.apk $dir/ 2>/dev/null || true
           done
           
           echo "Package files copied"
@@ -105,6 +105,17 @@ runs:
         else
           echo "aarch64 core file not found"
         fi
+        
+        if [ -f "Meta/master/meta/clash-linux-mips-softfloat.tar.gz" ]; then
+          for dir in openclash-fw3-ipk-mipsel_24kc openclash-fw3-apk-mipsel_24kc \
+                      openclash-fw4-ipk-mipsel_24kc openclash-fw4-apk-mipsel_24kc; do
+            tar -xzf Meta/master/meta/clash-linux-arm64.tar.gz -C $dir
+            mv $dir/clash $dir/clash_meta 2>/dev/null || true
+          done
+          echo "mipsel_24kc core extracted to all mipsel_24kc directories"
+        else
+          echo "mipsel_24kc core file not found"
+        fi
 
     - name: Create install.sh scripts for FW3 (iptables)
       shell: bash
@@ -128,7 +139,7 @@ runs:
         /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw3-ipk-x86/install.sh
-        cp openclash-fw3-ipk-x86/install.sh openclash-fw3-ipk-a53/install.sh
+        cp openclash-fw3-ipk-x86/install.sh openclash-fw3-ipk-a53/install.sh  openclash-fw3-ipk-mipsel_24kc/install.sh 
         
         # FW3 + APK (Alpine)
         cat <<'EOF' > openclash-fw3-apk-x86/install.sh
@@ -152,7 +163,7 @@ runs:
         /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw3-apk-x86/install.sh
-        cp openclash-fw3-apk-x86/install.sh openclash-fw3-apk-a53/install.sh
+        cp openclash-fw3-apk-x86/install.sh openclash-fw3-apk-a53/install.sh  openclash-fw3-apk-mipsel_24kc/install.sh   
 
     - name: Create install.sh scripts for FW4 (nftables)
       shell: bash
@@ -176,7 +187,7 @@ runs:
         /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw4-ipk-x86/install.sh
-        cp openclash-fw4-ipk-x86/install.sh openclash-fw4-ipk-a53/install.sh
+        cp openclash-fw4-ipk-x86/install.sh openclash-fw4-ipk-a53/install.sh openclash-fw4-ipk-mipsel_24kc/install.sh  
         
         # FW4 + APK (Alpine)
         cat <<'EOF' > openclash-fw4-apk-x86/install.sh
@@ -200,7 +211,7 @@ runs:
         /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw4-apk-x86/install.sh
-        cp openclash-fw4-apk-x86/install.sh openclash-fw4-apk-a53/install.sh
+        cp openclash-fw4-apk-x86/install.sh openclash-fw4-apk-a53/install.sh openclash-fw4-apk-mipsel_24kc/install.sh
 
     - name: Clone makeself repository
       shell: bash
@@ -213,22 +224,26 @@ runs:
     - name: Create self-extracting packages
       shell: bash
       run: |
-        mv openclash-fw3-ipk-x86 openclash-fw3-ipk-a53 \
-           openclash-fw3-apk-x86 openclash-fw3-apk-a53 \
-           openclash-fw4-ipk-x86 openclash-fw4-ipk-a53 \
-           openclash-fw4-apk-x86 openclash-fw4-apk-a53 makeself/
+        mv openclash-fw3-ipk-x86 openclash-fw3-ipk-a53  openclash-fw3-ipk-mipsel_24kc \
+           openclash-fw3-apk-x86 openclash-fw3-apk-a53  openclash-fw3-apk-mipsel_24kc \
+           openclash-fw4-ipk-x86 openclash-fw4-ipk-a53  openclash-fw4-ipk-mipsel_24kc \
+           openclash-fw4-apk-x86 openclash-fw4-apk-a53  openclash-fw4-apk-mipsel_24kc makeself/
         
         cd makeself
         
         [ -d "openclash-fw3-ipk-x86" ] && ./makeself.sh openclash-fw3-ipk-x86/ openclash-fw3-ipk-x86_64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for OpenWrt x86_64" ./install.sh
         [ -d "openclash-fw3-ipk-a53" ] && ./makeself.sh openclash-fw3-ipk-a53/ openclash-fw3-ipk-aarch64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for OpenWrt aarch64" ./install.sh
+        [ -d "openclash-fw3-ipk-mipsel_24kc" ] && ./makeself.sh openclash-fw3-ipk-mipsel_24kc/ openclash-fw3-ipk-mipsel_24kc-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for OpenWrt mipsel_24kc" ./install.sh
         [ -d "openclash-fw3-apk-x86" ] && ./makeself.sh openclash-fw3-apk-x86/ openclash-fw3-apk-x86_64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for Alpine x86_64" ./install.sh
         [ -d "openclash-fw3-apk-a53" ] && ./makeself.sh openclash-fw3-apk-a53/ openclash-fw3-apk-aarch64-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for Alpine aarch64" ./install.sh
+        [ -d "openclash-fw3-apk-mipsel_24kc" ] && ./makeself.sh openclash-fw3-apk-mipsel_24kc/ openclash-fw3-apk-mipsel_24kc-${{ env.VERSION }}.run "OpenClash FW3 (iptables) for Alpine mipsel_24kc" ./install.sh
         
         [ -d "openclash-fw4-ipk-x86" ] && ./makeself.sh openclash-fw4-ipk-x86/ openclash-fw4-ipk-x86_64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for OpenWrt x86_64" ./install.sh
         [ -d "openclash-fw4-ipk-a53" ] && ./makeself.sh openclash-fw4-ipk-a53/ openclash-fw4-ipk-aarch64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for OpenWrt aarch64" ./install.sh
+        [ -d "openclash-fw4-ipk-mipsel_24kc" ] && ./makeself.sh openclash-fw4-ipk-mipsel_24kc/ openclash-fw4-ipk-mipsel_24kc-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for OpenWrt mipsel_24kc" ./install.sh
         [ -d "openclash-fw4-apk-x86" ] && ./makeself.sh openclash-fw4-apk-x86/ openclash-fw4-apk-x86_64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for Alpine x86_64" ./install.sh
         [ -d "openclash-fw4-apk-a53" ] && ./makeself.sh openclash-fw4-apk-a53/ openclash-fw4-apk-aarch64-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for Alpine aarch64" ./install.sh
+        [ -d "openclash-fw4-apk-mipsel_24kc" ] && ./makeself.sh openclash-fw4-apk-mipsel_24kc/ openclash-fw4-apk-mipsel_24kc-${{ env.VERSION }}.run "OpenClash FW4 (nftables) for Alpine mipsel_24kc" ./install.sh
         
         echo "All packages created:"
         ls -lh *.run
