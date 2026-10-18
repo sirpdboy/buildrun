@@ -218,7 +218,8 @@ runs:
         echo "FW3 Passwall2 installation completed for OpenWrt"
         EOF
         chmod +x passwall2-fw3-ipk-x86/install.sh
-        cp passwall2-fw3-ipk-x86/install.sh passwall2-fw3-ipk-a53/install.sh  passwall2-fw3-ipk-mipsel_24kc/install.sh
+        cp passwall2-fw3-ipk-x86/install.sh passwall2-fw3-ipk-a53/install.sh
+        cp passwall2-fw3-ipk-x86/install.sh passwall2-fw3-ipk-mipsel_24kc/install.sh
         
         # FW3 + APK (Alpine Linux)
         cat <<'EOF' > passwall2-fw3-apk-x86/install.sh
@@ -246,7 +247,8 @@ runs:
         echo "FW3 Passwall2 installation completed for Alpine Linux"
         EOF
         chmod +x passwall2-fw3-apk-x86/install.sh
-        cp passwall2-fw3-apk-x86/install.sh passwall2-fw3-apk-a53/install.sh  passwall2-fw3-apk-mipsel_24kc/install.sh  
+        cp passwall2-fw3-apk-x86/install.sh passwall2-fw3-apk-a53/install.sh  
+        cp passwall2-fw3-apk-x86/install.sh passwall2-fw3-apk-mipsel_24kc/install.sh  
         
         echo "FW3 install scripts created"
 
@@ -275,7 +277,8 @@ runs:
         echo "FW4 Passwall2 installation completed for OpenWrt"
         EOF
         chmod +x passwall2-fw4-ipk-x86/install.sh
-        cp passwall2-fw4-ipk-x86/install.sh passwall2-fw4-ipk-a53/install.sh passwall2-fw4-ipk-mipsel_24kc/install.sh
+        cp passwall2-fw4-ipk-x86/install.sh passwall2-fw4-ipk-a53/install.sh
+        cp passwall2-fw4-ipk-x86/install.sh passwall2-fw4-ipk-mipsel_24kc/install.sh
         
         # FW4 + APK (Alpine Linux)
         cat <<'EOF' > passwall2-fw4-apk-x86/install.sh
@@ -302,7 +305,8 @@ runs:
         echo "FW4 Passwall2 installation completed for Alpine Linux"
         EOF
         chmod +x passwall2-fw4-apk-x86/install.sh
-        cp passwall2-fw4-apk-x86/install.sh passwall2-fw4-apk-a53/install.sh  passwall2-fw4-apk-mipsel_24kc/install.sh  
+        cp passwall2-fw4-apk-x86/install.sh passwall2-fw4-apk-a53/install.sh
+        cp passwall2-fw4-apk-x86/install.sh passwall2-fw4-apk-mipsel_24kc/install.sh  
         
         echo "FW4 install scripts created"
 
