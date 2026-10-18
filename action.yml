@@ -139,7 +139,8 @@ runs:
         /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw3-ipk-x86/install.sh
-        cp openclash-fw3-ipk-x86/install.sh openclash-fw3-ipk-a53/install.sh  openclash-fw3-ipk-mipsel_24kc/install.sh 
+        cp openclash-fw3-ipk-x86/install.sh openclash-fw3-ipk-a53/install.sh
+        cp openclash-fw3-ipk-x86/install.sh openclash-fw3-ipk-mipsel_24kc/install.sh 
         
         # FW3 + APK (Alpine)
         cat <<'EOF' > openclash-fw3-apk-x86/install.sh
@@ -163,7 +164,8 @@ runs:
         /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw3-apk-x86/install.sh
-        cp openclash-fw3-apk-x86/install.sh openclash-fw3-apk-a53/install.sh  openclash-fw3-apk-mipsel_24kc/install.sh   
+        cp openclash-fw3-apk-x86/install.sh openclash-fw3-apk-a53/install.sh
+        cp openclash-fw3-apk-x86/install.sh openclash-fw3-apk-mipsel_24kc/install.sh   
 
     - name: Create install.sh scripts for FW4 (nftables)
       shell: bash
@@ -187,7 +189,8 @@ runs:
         /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw4-ipk-x86/install.sh
-        cp openclash-fw4-ipk-x86/install.sh openclash-fw4-ipk-a53/install.sh openclash-fw4-ipk-mipsel_24kc/install.sh  
+        cp openclash-fw4-ipk-x86/install.sh openclash-fw4-ipk-a53/install.sh
+        cp openclash-fw4-ipk-x86/install.sh openclash-fw4-ipk-mipsel_24kc/install.sh  
         
         # FW4 + APK (Alpine)
         cat <<'EOF' > openclash-fw4-apk-x86/install.sh
@@ -211,7 +214,8 @@ runs:
         /etc/init.d/rpcd restart
         EOF
         chmod +x openclash-fw4-apk-x86/install.sh
-        cp openclash-fw4-apk-x86/install.sh openclash-fw4-apk-a53/install.sh openclash-fw4-apk-mipsel_24kc/install.sh
+        cp openclash-fw4-apk-x86/install.sh openclash-fw4-apk-a53/install.sh
+        cp openclash-fw4-apk-x86/install.sh openclash-fw4-apk-mipsel_24kc/install.sh
 
     - name: Clone makeself repository
       shell: bash
