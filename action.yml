@@ -185,7 +185,7 @@ runs:
         # FW4 + APK mipsel_24kc
         mkdir -p passwall2-fw4-apk-mipsel_24kc/depends passwall2-fw4-apk-mipsel_24kc/luci
         if [ -f downloads/passwall_packages_apk_mipsel_24kc.zip ]; then
-          unzip -q downloads/passwall_packages_apk_mipsel_24kczip -d passwall2-fw4-apk-mipsel_24kc/depends
+          unzip -q downloads/passwall_packages_apk_mipsel_24kc.zip -d passwall2-fw4-apk-mipsel_24kc/depends
         fi
         cp downloads/luci-app-passwall2*.apk passwall2-fw4-apk-mipsel_24kc/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw4-apk-mipsel_24kc/luci/ 2>/dev/null || true
@@ -218,7 +218,7 @@ runs:
         echo "FW3 Passwall2 installation completed for OpenWrt"
         EOF
         chmod +x passwall2-fw3-ipk-x86/install.sh
-        cp passwall2-fw3-ipk-x86/install.sh passwall2-fw3-ipk-a53/install.sh
+        cp passwall2-fw3-ipk-x86/install.sh passwall2-fw3-ipk-a53/install.sh  passwall2-fw3-ipk-mipsel_24kc/install.sh
         
         # FW3 + APK (Alpine Linux)
         cat <<'EOF' > passwall2-fw3-apk-x86/install.sh
@@ -246,7 +246,7 @@ runs:
         echo "FW3 Passwall2 installation completed for Alpine Linux"
         EOF
         chmod +x passwall2-fw3-apk-x86/install.sh
-        cp passwall2-fw3-apk-x86/install.sh passwall2-fw3-apk-a53/install.sh   passwall2-fw3-apk-mipsel_24kc/install.sh  
+        cp passwall2-fw3-apk-x86/install.sh passwall2-fw3-apk-a53/install.sh  passwall2-fw3-apk-mipsel_24kc/install.sh  
         
         echo "FW3 install scripts created"
 
@@ -275,7 +275,7 @@ runs:
         echo "FW4 Passwall2 installation completed for OpenWrt"
         EOF
         chmod +x passwall2-fw4-ipk-x86/install.sh
-        cp passwall2-fw4-ipk-x86/install.sh passwall2-fw4-ipk-a53/install.sh
+        cp passwall2-fw4-ipk-x86/install.sh passwall2-fw4-ipk-a53/install.sh passwall2-fw4-ipk-mipsel_24kc/install.sh
         
         # FW4 + APK (Alpine Linux)
         cat <<'EOF' > passwall2-fw4-apk-x86/install.sh
