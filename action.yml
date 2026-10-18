@@ -239,7 +239,8 @@ runs:
         echo "Please visit Luci -> Services -> SSR Plus to configure"
         EOF
         chmod +x ssr-ipk-x86/install.sh
-        cp ssr-ipk-x86/install.sh ssr-ipk-a53/install.sh  ssr-ipk-mipsel_24kc/install.sh
+        cp ssr-ipk-x86/install.sh ssr-ipk-a53/install.sh
+        cp ssr-ipk-x86/install.sh ssr-ipk-mipsel_24kc/install.sh
         echo "IPK install scripts created"
 
 
