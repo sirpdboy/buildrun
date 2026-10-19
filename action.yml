@@ -213,7 +213,8 @@ runs:
           ipset ipt2socks
         
         opkg install --force-depends depends/*.ipk
-        opkg install --force-depends luci/*.ipk
+        opkg install --force-depends luci-a/*.ipk
+        opkg install --force-depends luci-i/*.ipk
         
         echo "FW3 Passwall2 installation completed for OpenWrt"
         EOF
@@ -238,7 +239,7 @@ runs:
           iptables-mod-socket iptables-mod-tproxy \
           ipset ipt2socks
         
-        for pkg in depends/*.apk luci/*.apk; do
+        for pkg in depends/*.apk luci-a/*.apk luci-i/*.apk; do
             if [ -f "$pkg" ]; then
                 apk add --force --allow-untrusted "$pkg"
             fi
@@ -272,7 +273,8 @@ runs:
           ipt2socks
         
         opkg install --force-depends depends/*.ipk
-        opkg install --force-depends luci/*.ipk
+        opkg install --force-depends luci-a/*.ipk
+        opkg install --force-depends luci-i/*.ipk
         
         echo "FW4 Passwall2 installation completed for OpenWrt"
         EOF
@@ -296,7 +298,7 @@ runs:
           kmod-nft-tproxy kmod-nft-nat \
           ipt2socks
         
-        for pkg in depends/*.apk luci/*.apk; do
+        for pkg in depends/*.apk luci-a/*.apk luci-i/*.apk; do
             if [ -f "$pkg" ]; then
                 apk add --force --allow-untrusted "$pkg"
             fi
