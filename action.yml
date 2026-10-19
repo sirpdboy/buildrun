@@ -26,7 +26,10 @@ runs:
       id: fetch_latest_tag
       shell: bash
       run: |
-        latest_tag=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest | jq -r '.tag_name')
+        # latest_tag=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest | jq -r '.tag_name')
+        latest_ver=$(curl -fsSL  https://raw.githubusercontent.com/Openwrt-Passwall/openwrt-passwall2/main/luci-app-passwall2/Makefile  | grep  "PKG_VERSION:=" | cut -d = -f 2)
+        latest_RELEASE=$(curl -fsSL  https://raw.githubusercontent.com/Openwrt-Passwall/openwrt-passwall2/main/luci-app-passwall2/Makefile  | grep  "PKG_RELEASE:=" | cut -d = -f 2)
+        latest_tag=$latest_ver-$latest_RELEASE
         echo "LATEST_TAG=$latest_tag" >> $GITHUB_ENV
         mkdir -p ${{ inputs.OUTPUT_DIR }}
         echo "Latest tag: $latest_tag"
@@ -56,8 +59,16 @@ runs:
       shell: bash
       run: |
         cd downloads
+
         
+        latest_ver=$(curl -fsSL  https://raw.githubusercontent.com/Openwrt-Passwall/openwrt-passwall2/main/luci-app-passwall2/Makefile  | grep  "PKG_VERSION:=" | cut -d = -f 2)
+        latest_RELEASE=$(curl -fsSL  https://raw.githubusercontent.com/Openwrt-Passwall/openwrt-passwall2/main/luci-app-passwall2/Makefile  | grep  "PKG_RELEASE:=" | cut -d = -f 2)
+        latest_tag=$latest_ver-$latest_RELEASE
         PACKAGES=(
+          "luci-app-passwall2-$(latest_ver)-r$(latest_RELEASE).apk"
+          "luci-app-passwall2_$(latest_ver)-r$(latest_RELEASE)_all.ipk"
+          "luci-i18n-passwall2-zh-cn-$(latest_ver).apk"
+          "luci-i18n-passwall2-zh-cn_$(latest_ver)_all.ipk"
           "passwall_packages_ipk_x86_64.zip"
           "passwall_packages_apk_x86_64.zip"
           "passwall_packages_ipk_aarch64_cortex-a53.zip"
@@ -66,22 +77,11 @@ runs:
           "passwall_packages_apk_mipsel_24kc.zip"
           
         )
-        
         for pkg in "${PACKAGES[@]}"; do
           echo "Downloading: $pkg"
           curl -L -f -o "$pkg" \
-            "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${{ env.LATEST_TAG }}/$pkg" || echo "Warning: Failed to download $pkg"
+            "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/$latest_tag/$pkg" || echo "Warning: Failed to download $pkg"
         done
-        
-        RELEASE_INFO=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest)
-        
-        echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | test("luci.*\\.(ipk|apk)$")) | "\(.name)|\(.browser_download_url)"' | while IFS='|' read -r name url; do
-          if [ -n "$url" ] && [ "$url" != "null" ]; then
-            echo "Downloading: $name"
-            curl -L -f -o "$name" "$url" || echo "Warning: Failed to download $name"
-          fi
-        done
-        
         echo "Download completed"
         ls -la
 
