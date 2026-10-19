@@ -65,10 +65,10 @@ runs:
         latest_RELEASE=$(curl -fsSL  https://raw.githubusercontent.com/Openwrt-Passwall/openwrt-passwall2/main/luci-app-passwall2/Makefile  | grep  "PKG_RELEASE:=" | cut -d = -f 2)
         latest_tag=$latest_ver-$latest_RELEASE
         PACKAGES=(
-          "luci-app-passwall2-$(latest_ver)-r$(latest_RELEASE).apk"
-          "luci-app-passwall2_$(latest_ver)-r$(latest_RELEASE)_all.ipk"
-          "luci-i18n-passwall2-zh-cn-$(latest_ver).apk"
-          "luci-i18n-passwall2-zh-cn_$(latest_ver)_all.ipk"
+          "luci-app-passwall2-`$(latest_ver)-r$(latest_RELEASE)`.apk"
+          "luci-app-passwall2_`$(latest_ver)-r$(latest_RELEASE)`_all.ipk"
+          "luci-i18n-passwall2-zh-cn-`$(latest_ver)`.apk"
+          "luci-i18n-passwall2-zh-cn_`$(latest_ver)`_all.ipk"
           "passwall_packages_ipk_x86_64.zip"
           "passwall_packages_apk_x86_64.zip"
           "passwall_packages_ipk_aarch64_cortex-a53.zip"
