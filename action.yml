@@ -69,12 +69,12 @@ runs:
           "luci-app-passwall2_${latest_ver}-r${latest_RELEASE}_all.ipk"
           "luci-i18n-passwall2-zh-cn-${latest_ver}.apk"
           "luci-i18n-passwall2-zh-cn_${latest_ver}_all.ipk"
-          "passwall_packages_ipk_x86_64.zip"
-          "passwall_packages_apk_x86_64.zip"
-          "passwall_packages_ipk_aarch64_cortex-a53.zip"
-          "passwall_packages_apk_aarch64_cortex-a53.zip"
-          "passwall_packages_ipk_mipsel_24kc.zip"
-          "passwall_packages_apk_mipsel_24kc.zip"
+          "packages_ipk_x86_64.zip"
+          "packages_apk_x86_64.zip"
+          "packages_ipk_aarch64_cortex-a53.zip"
+          "packages_apk_aarch64_cortex-a53.zip"
+          "packages_ipk_mipsel_24kc.zip"
+          "packages_apk_mipsel_24kc.zip"
           
         )
         for pkg in "${PACKAGES[@]}"; do
@@ -90,16 +90,16 @@ runs:
       run: |
         # FW3 + IPK x86_64
         mkdir -p passwall2-fw3-ipk-x86/depends passwall2-fw3-ipk-x86/luci
-        if [ -f downloads/passwall_packages_ipk_x86_64.zip ]; then
-          unzip -q downloads/passwall_packages_ipk_x86_64.zip -d passwall2-fw3-ipk-x86/depends
+        if [ -f downloads/packages_ipk_x86_64.zip ]; then
+          unzip -q downloads/packages_ipk_x86_64.zip -d passwall2-fw3-ipk-x86/depends
         fi
         cp downloads/luci-app-passwall2*.ipk passwall2-fw3-ipk-x86/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw3-ipk-x86/luci/ 2>/dev/null || true
         
         # FW3 + IPK aarch64
         mkdir -p passwall2-fw3-ipk-a53/depends passwall2-fw3-ipk-a53/luci
-        if [ -f downloads/passwall_packages_ipk_aarch64_cortex-a53.zip ]; then
-          unzip -q downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall2-fw3-ipk-a53/depends
+        if [ -f downloads/packages_ipk_aarch64_cortex-a53.zip ]; then
+          unzip -q downloads/packages_ipk_aarch64_cortex-a53.zip -d passwall2-fw3-ipk-a53/depends
         fi
         cp downloads/luci-app-passwall2*.ipk passwall2-fw3-ipk-a53/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw3-ipk-a53/luci/ 2>/dev/null || true
@@ -107,32 +107,32 @@ runs:
         
         # FW3 + IPK mipsel_24kc
         mkdir -p passwall2-fw3-ipk-mipsel_24kc/depends passwall2-fw3-ipk-mipsel_24kc/luci
-        if [ -f downloads/passwall_packages_ipk_mipsel_24kc.zip ]; then
-          unzip -q downloads/passwall_packages_ipk_mipsel_24kc.zip -d passwall2-fw3-ipk-mipsel_24kc/depends
+        if [ -f downloads/packages_ipk_mipsel_24kc.zip ]; then
+          unzip -q downloads/packages_ipk_mipsel_24kc.zip -d passwall2-fw3-ipk-mipsel_24kc/depends
         fi
         cp downloads/luci-app-passwall2*.ipk passwall2-fw3-ipk-mipsel_24kc/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw3-ipk-mipsel_24kc/luci/ 2>/dev/null || true
         
         # FW3 + APK x86_64
         mkdir -p passwall2-fw3-apk-x86/depends passwall2-fw3-apk-x86/luci
-        if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
-          unzip -q downloads/passwall_packages_apk_x86_64.zip -d passwall2-fw3-apk-x86/depends
+        if [ -f downloads/packages_apk_x86_64.zip ]; then
+          unzip -q downloads/packages_apk_x86_64.zip -d passwall2-fw3-apk-x86/depends
         fi
         cp downloads/luci-app-passwall2*.apk passwall2-fw3-apk-x86/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw3-apk-x86/luci/ 2>/dev/null || true
         
         # FW3 + APK aarch64
         mkdir -p passwall2-fw3-apk-a53/depends passwall2-fw3-apk-a53/luci
-        if [ -f downloads/passwall_packages_apk_aarch64_cortex-a53.zip ]; then
-          unzip -q downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall2-fw3-apk-a53/depends
+        if [ -f downloads/packages_apk_aarch64_cortex-a53.zip ]; then
+          unzip -q downloads/packages_apk_aarch64_cortex-a53.zip -d passwall2-fw3-apk-a53/depends
         fi
         cp downloads/luci-app-passwall2*.apk passwall2-fw3-apk-a53/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw3-apk-a53/luci/ 2>/dev/null || true
         
         # FW3 + APK mipsel_24kc
         mkdir -p passwall2-fw3-apk-mipsel_24kc/depends passwall2-fw3-apk-mipsel_24kc/luci
-        if [ -f downloads/passwall_packages_apk_mipsel_24kc.zip ]; then
-          unzip -q downloads/passwall_packages_apk_mipsel_24kc.zip -d passwall2-fw3-apk-mipsel_24kc/depends
+        if [ -f downloads/packages_apk_mipsel_24kc.zip ]; then
+          unzip -q downloads/packages_apk_mipsel_24kc.zip -d passwall2-fw3-apk-mipsel_24kc/depends
         fi
         cp downloads/luci-app-passwall2*.apk passwall2-fw3-apk-mipsel_24kc/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw3-apk-mipsel_24kc/luci/ 2>/dev/null || true
@@ -144,48 +144,48 @@ runs:
       run: |
         # FW4 + IPK x86_64
         mkdir -p passwall2-fw4-ipk-x86/depends passwall2-fw4-ipk-x86/luci
-        if [ -f downloads/passwall_packages_ipk_x86_64.zip ]; then
-          unzip -q downloads/passwall_packages_ipk_x86_64.zip -d passwall2-fw4-ipk-x86/depends
+        if [ -f downloads/packages_ipk_x86_64.zip ]; then
+          unzip -q downloads/packages_ipk_x86_64.zip -d passwall2-fw4-ipk-x86/depends
         fi
         cp downloads/luci-app-passwall2*.ipk passwall2-fw4-ipk-x86/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw4-ipk-x86/luci/ 2>/dev/null || true
         
         # FW4 + IPK aarch64
         mkdir -p passwall2-fw4-ipk-a53/depends passwall2-fw4-ipk-a53/luci
-        if [ -f downloads/passwall_packages_ipk_aarch64_cortex-a53.zip ]; then
-          unzip -q downloads/passwall_packages_ipk_aarch64_cortex-a53.zip -d passwall2-fw4-ipk-a53/depends
+        if [ -f downloads/packages_ipk_aarch64_cortex-a53.zip ]; then
+          unzip -q downloads/packages_ipk_aarch64_cortex-a53.zip -d passwall2-fw4-ipk-a53/depends
         fi
         cp downloads/luci-app-passwall2*.ipk passwall2-fw4-ipk-a53/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw4-ipk-a53/luci/ 2>/dev/null || true
         
         # FW4 + IPK mipsel_24kc
         mkdir -p passwall2-fw4-ipk-mipsel_24kc/depends passwall2-fw4-ipk-mipsel_24kc/luci
-        if [ -f downloads/passwall_packages_ipk_mipsel_24kc.zip ]; then
-          unzip -q downloads/passwall_packages_ipk_mipsel_24kc -d passwall2-fw4-ipk-mipsel_24kc/depends
+        if [ -f downloads/packages_ipk_mipsel_24kc.zip ]; then
+          unzip -q downloads/packages_ipk_mipsel_24kc -d passwall2-fw4-ipk-mipsel_24kc/depends
         fi
         cp downloads/luci-app-passwall2*.ipk passwall2-fw4-ipk-mipsel_24kc/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.ipk passwall2-fw4-ipk-mipsel_24kc/luci/ 2>/dev/null || true
         
         # FW4 + APK x86_64
         mkdir -p passwall2-fw4-apk-x86/depends passwall2-fw4-apk-x86/luci
-        if [ -f downloads/passwall_packages_apk_x86_64.zip ]; then
-          unzip -q downloads/passwall_packages_apk_x86_64.zip -d passwall2-fw4-apk-x86/depends
+        if [ -f downloads/packages_apk_x86_64.zip ]; then
+          unzip -q downloads/packages_apk_x86_64.zip -d passwall2-fw4-apk-x86/depends
         fi
         cp downloads/luci-app-passwall2*.apk passwall2-fw4-apk-x86/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw4-apk-x86/luci/ 2>/dev/null || true
         
         # FW4 + APK aarch64
         mkdir -p passwall2-fw4-apk-a53/depends passwall2-fw4-apk-a53/luci
-        if [ -f downloads/passwall_packages_apk_aarch64_cortex-a53.zip ]; then
-          unzip -q downloads/passwall_packages_apk_aarch64_cortex-a53.zip -d passwall2-fw4-apk-a53/depends
+        if [ -f downloads/packages_apk_aarch64_cortex-a53.zip ]; then
+          unzip -q downloads/packages_apk_aarch64_cortex-a53.zip -d passwall2-fw4-apk-a53/depends
         fi
         cp downloads/luci-app-passwall2*.apk passwall2-fw4-apk-a53/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw4-apk-a53/luci/ 2>/dev/null || true
         
         # FW4 + APK mipsel_24kc
         mkdir -p passwall2-fw4-apk-mipsel_24kc/depends passwall2-fw4-apk-mipsel_24kc/luci
-        if [ -f downloads/passwall_packages_apk_mipsel_24kc.zip ]; then
-          unzip -q downloads/passwall_packages_apk_mipsel_24kc.zip -d passwall2-fw4-apk-mipsel_24kc/depends
+        if [ -f downloads/packages_apk_mipsel_24kc.zip ]; then
+          unzip -q downloads/packages_apk_mipsel_24kc.zip -d passwall2-fw4-apk-mipsel_24kc/depends
         fi
         cp downloads/luci-app-passwall2*.apk passwall2-fw4-apk-mipsel_24kc/luci/ 2>/dev/null || true
         cp downloads/luci-i18n-passwall2-zh-cn*.apk passwall2-fw4-apk-mipsel_24kc/luci/ 2>/dev/null || true
